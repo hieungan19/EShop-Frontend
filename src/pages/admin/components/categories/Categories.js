@@ -4,7 +4,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   Button,
-  CircularProgress,
   IconButton,
   Paper,
   Table,
@@ -20,17 +19,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { deleteDataAxios, fetchDataAxios } from '../../../../api/customAxios';
 import ConfirmDeleteDialog from '../../../../components/dialogs/ConfirmDeleteDialog';
+import TableStyleHeader from '../../../../components/style-component/StyleTableHeader';
 import { selectUserToken } from '../../../../redux/slice/authSlice';
-import {
-  DELETE_CATEGORY,
-  STORE_CATEGORIES,
-  selectCategories,
-} from '../../../../redux/slice/categorySlice';
+import { STORE_CATEGORIES } from '../../../../redux/slice/categorySlice';
 import { Colors } from '../../../../style/theme';
 import CategoryFormDialog from './CategoryFormDialog';
-import TableStyleHeader from '../../../../components/style-component/StyleTableHeader';
-const fetchData = async () => {
-  console.log('Fetch data');
+export const fetchCategories = async () => {
+  console.log('Fetch categories');
   try {
     const response = await fetchDataAxios({ url: 'categories' });
     return response;
@@ -48,8 +43,8 @@ const Categories = () => {
   const dispatch = useDispatch();
 
   const fetchDataAndDispatch = async () => {
-    const response = await fetchData();
-    console.log(response);
+    const response = await fetchCategories();
+
     if (response) {
       setCategories(response.categories);
       dispatch(STORE_CATEGORIES({ categories: response.categories }));

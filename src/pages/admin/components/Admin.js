@@ -7,10 +7,9 @@ import Home from './home/Home';
 import Categories from './categories/Categories';
 import Discounts from './discounts/Discounts';
 import Orders from './orders/Orders';
-import AddProduct from './products/ProductCreate';
 const Admin = () => {
   return (
-    <Grid container spacing={4}>
+    <Grid container spacing={4} sx={{ display: 'flex', flexWrap: 'nowrap' }}>
       <CssBaseline />
       <Grid item>
         <AdminSideBar />

@@ -1,77 +1,107 @@
-import React, { useState, useEffect } from 'react';
 import {
   Button,
   Card,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   Grid,
   Input,
   InputLabel,
   MenuItem,
   Select,
-  Snackbar,
   TextField,
-  TextareaAutosize,
+  Typography,
+  styled,
 } from '@mui/material';
-import Textarea from '@mui/joy/Textarea';
-import {
-  putDataAxios,
-  fetchDataAxios,
-  deleteDataAxios,
-  postDataAxios,
-} from '../../../../api/customAxios';
-import { useNavigate, useParams } from 'react-router-dom';
-import { toast } from 'react-toastify';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
-import Axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
+import {
+  fetchDataAxios,
+  postDataAxios,
+  putDataAxios,
+} from '../../../../api/customAxios';
 import { storage } from '../../../../firebase/config';
-import styles from './AddProduct.module.scss';
+import { Colors } from '../../../../style/theme';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  STORE_CATEGORIES,
+  selectCategories,
+} from '../../../../redux/slice/categorySlice';
+import axios from 'axios';
+import { fetchCategories } from '../categories/Categories';
 
-const categories = [
-  { id: 1, name: 'Laptop' },
-  { id: 2, name: 'Electronics' },
-  { id: 3, name: 'Fashion' },
-  { id: 4, name: 'Phone' },
-];
+const StyledProductTitle = styled(Typography)(({}) => ({
+  color: Colors.black,
+  variant: 'body2',
+  fontWeight: '500',
+}));
+
+const StyledTextField = styled(TextField)`
+  textarea {
+    resize: both;
+  }
+`;
 
 const initialState = {
   name: '',
   imageURL: '',
-  categoryID: '',
-  price: 0,
-  desc: '',
+  categoryId: '',
+  description: '',
   options: [{ name: '', price: 0, quantity: 0 }],
 };
 
-const AddProduct = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+const ProductFormDialog = ({
+  productId = '',
+  open,
+  handleCloseDialog,
+  fetchProductsAndDispatch,
+}) => {
   const [product, setProduct] = useState({ ...initialState });
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [image, setImage] = useState(null);
+  const [categories, setCategories] = useState(useSelector(selectCategories));
   const [previewImage, setPreviewImage] = useState('');
+  const dispatch = useDispatch();
+
+  const fetchCategoriesAndDispatch = async () => {
+    const response = await fetchCategories();
+    if (response) {
+      setCategories(response.categories);
+      dispatch(STORE_CATEGORIES({ categories: response.categories }));
+    }
+  };
 
   useEffect(() => {
-    if (id !== 'add') {
-      fetchData(); // Fetch product details for editing
-    }
-  }, [id]);
+    const fetchData = async () => {
+      if (categories.length === 0) {
+        await fetchCategoriesAndDispatch();
+      }
+      if (productId !== '') {
+        await fetchProduct();
+      }
+    };
 
-  async function fetchData() {
+    fetchData();
+  }, [productId]);
+
+  const fetchProduct = async () => {
     try {
-      const response = await fetchDataAxios(`products/${id}`); // Replace with your API endpoint
-      const productData = response.data;
-      setProduct(detectForm(id, { ...initialState }, productData));
+      const response = await fetchDataAxios({ url: `products/${productId}` });
+      setProduct(detectForm(productId, { ...initialState }, response));
+      setPreviewImage(response.imageUrl);
     } catch (error) {
       console.error('Error fetching product data:', error);
     }
-  }
+  };
 
-  function detectForm(id, f1, f2) {
-    return id === 'add' ? f1 : f2;
-  }
+  const detectForm = (id, f1, f2) => {
+    return id === '' ? f1 : f2;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -96,45 +126,52 @@ const AddProduct = () => {
     updatedOptions.splice(index, 1);
     setProduct({ ...product, options: updatedOptions });
   };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    setImage(file);
 
-    // Create a FileReader
     const reader = new FileReader();
 
     reader.onloadend = () => {
-      // Set the result of the FileReader as the preview image
       setPreviewImage(reader.result);
     };
 
     if (file) {
-      // Read the file as a data URL
       reader.readAsDataURL(file);
     }
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = async (file) => {
     const storageRef = ref(storage, `eshop/${Date.now()}${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        toast.error(error.message);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          setProduct({ ...product, imageURL: downloadURL });
-          toast.success('Image uploaded successfully.');
-        });
-      }
-    );
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
+        (error) => {
+          console.log(error);
+          toast.error(error.message);
+          reject(error);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            setProduct({ ...product, imageUrl: downloadURL });
+            resolve(downloadURL);
+          } catch (error) {
+            console.log(error);
+            toast.error(error.message);
+            reject(error);
+          }
+        }
+      );
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -142,40 +179,47 @@ const AddProduct = () => {
     setIsLoading(true);
 
     try {
-      const response = await (id === 'ADD'
-        ? postDataAxios({ url: '/api/products', data: product }) // Replace with your API endpoint
-        : putDataAxios({ url: `products/${id}`, data: product })); // Replace with your API endpoint
+      const downloadURL = await handleImageUpload(image);
+      const response = await (productId === ''
+        ? postDataAxios({
+            url: 'products',
+            data: { ...product, imageUrl: downloadURL },
+          })
+        : putDataAxios({
+            url: `products/${productId}`,
+            data: { ...product, imageUrl: downloadURL },
+          }));
 
       setIsLoading(false);
       setUploadProgress(0);
-      setSnackbarMessage(response.data.message);
-      setOpenSnackbar(true);
 
-      if (id === 'ADD') {
+      if (!productId) {
         setProduct({ ...initialState });
       }
-
-      setTimeout(() => {
-        navigate('/admin/all-products');
-      }, 2000);
+      toast.success(
+        `${productId === '' ? 'Created' : 'Updated'} product successfully!`
+      );
+      await fetchProductsAndDispatch();
+      handleCloseDialog();
     } catch (error) {
       setIsLoading(false);
       toast.error(error.message);
     }
   };
 
-  const handleCloseSnackbar = () => {
-    setOpenSnackbar(false);
-  };
-
   return (
-    <div style={{ marginTop: '10px', marginRight: '10px' }}>
-      {isLoading && <CircularProgress />}
-      <div>
-        <h2>{detectForm(id, 'Add New Product', 'Edit Product')}</h2>
-        <Card className={styles.card}>
+    <Dialog open={open} onClose={handleCloseDialog} maxWidth='md' fullWidth>
+      <DialogTitle
+        textAlign={'center'}
+        fontWeight={'bold'}
+        textTransform={'uppercase'}
+      >
+        {detectForm(productId, 'Add New Product', 'Edit Product')}
+      </DialogTitle>
+      <DialogContent>
+        <Card>
           <form onSubmit={handleSubmit}>
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ mt: '8px' }}>
               <Grid item xs={12}>
                 <TextField
                   label='Product name'
@@ -187,14 +231,26 @@ const AddProduct = () => {
                 />
               </Grid>
               <Grid item xs={12}>
+                <StyledTextField
+                  id='outlined-textarea'
+                  label='Description'
+                  placeholder=' Product Description'
+                  name='description'
+                  multiline
+                  minRows={3}
+                  variant='outlined'
+                  value={product.description}
+                  onChange={handleInputChange}
+                  sx={{ width: '100%' }}
+                />
+              </Grid>
+              <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel id='demo-simple-select-helper-label'>
-                    Product Category
-                  </InputLabel>
+                  <InputLabel>Product Category</InputLabel>
                   <Select
                     required
-                    name='categoryID'
-                    value={product.categoryID}
+                    name='categoryId'
+                    value={product.categoryId}
                     onChange={handleInputChange}
                   >
                     <MenuItem value='' disabled>
@@ -208,57 +264,18 @@ const AddProduct = () => {
                   </Select>
                 </FormControl>
               </Grid>
+
               <Grid item xs={12}>
-                <TextField
-                  type='number'
-                  label='Product price'
-                  fullWidth
-                  required
-                  name='price'
-                  value={product.price}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  label='Product Company/Brand'
-                  fullWidth
-                  required
-                  name='brand'
-                  value={product.brand}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <InputLabel>Product image</InputLabel>
+                <InputLabel>
+                  <StyledProductTitle>Product Image</StyledProductTitle>
+                </InputLabel>
                 <Input
                   type='file'
                   accept='image/*'
                   name='image'
                   onChange={handleImageChange}
                 />
-                {/* {uploadProgress > 0 && (
-                  <div className={styles.progress}>
-                    <div
-                      className={styles['progress-bar']}
-                      style={{ width: `${uploadProgress}%` }}
-                    >
-                      {uploadProgress < 100
-                        ? `Uploading ${uploadProgress}%`
-                        : `Upload Complete ${uploadProgress}%`}
-                    </div>
-                  </div>
-                )}
-                {product.imageURL !== '' && (
-                  <TextField
-                    type='text'
-                    placeholder='Image URL'
-                    name='imageURL'
-                    value={product.imageURL}
-                    fullWidth
-                    disabled
-                  />
-                )} */}
+
                 {previewImage && (
                   <div
                     style={{
@@ -280,19 +297,11 @@ const AddProduct = () => {
                   </div>
                 )}
               </Grid>
-              <Grid item xs={12}>
-                <TextareaAutosize
-                  rowsMin={4}
-                  placeholder='Product Description'
-                  name='desc'
-                  required
-                  value={product.desc}
-                  onChange={handleInputChange}
-                  sx={{ width: '100%', minHeight: '5rem' }}
-                />
-              </Grid>
+
               <Grid item>
-                <InputLabel>Product Options</InputLabel>
+                <InputLabel>
+                  <StyledProductTitle>Product Options</StyledProductTitle>
+                </InputLabel>
                 {product.options.map((option, index) => (
                   <div key={index} style={{ marginBottom: '16px' }}>
                     <TextField
@@ -303,7 +312,7 @@ const AddProduct = () => {
                       onChange={(e) =>
                         handleOptionChange(index, 'name', e.target.value)
                       }
-                      sx={{ marginBottom: '8px' }}
+                      sx={{ marginBottom: '12px' }}
                     />
                     <TextField
                       type='number'
@@ -314,7 +323,7 @@ const AddProduct = () => {
                       onChange={(e) =>
                         handleOptionChange(index, 'price', e.target.value)
                       }
-                      sx={{ marginBottom: '8px' }}
+                      sx={{ marginBottom: '12px' }}
                     />
                     <TextField
                       type='number'
@@ -344,29 +353,34 @@ const AddProduct = () => {
                   Add Option
                 </Button>
               </Grid>
-              <Grid item xs={12}>
-                <Button
-                  variant='contained'
-                  color='primary'
-                  type='submit'
-                  disabled={isLoading}
-                  style={{ marginTop: '16px' }}
-                >
-                  {detectForm(id, 'Save Product', 'Edit Product')}
-                </Button>
-              </Grid>
             </Grid>
           </form>
         </Card>
-      </div>
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        message={snackbarMessage}
-      />
-    </div>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant='contained'
+          color='primary'
+          type='submit'
+          disabled={isLoading}
+          style={{ marginTop: '16px' }}
+          onClick={handleSubmit}
+        >
+          {isLoading ? <CircularProgress /> : 'SAVE PRODUCT'}
+        </Button>
+
+        <Button
+          variant='contained'
+          color='secondary'
+          disabled={isLoading}
+          style={{ marginTop: '16px' }}
+          onClick={handleCloseDialog}
+        >
+          CANCEL
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
-export default AddProduct;
+export default ProductFormDialog;
