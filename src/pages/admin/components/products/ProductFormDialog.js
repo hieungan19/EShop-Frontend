@@ -25,7 +25,7 @@ import {
   putDataAxios,
 } from '../../../../api/customAxios';
 import { storage } from '../../../../firebase/config';
-import { Colors } from '../../../../style/theme';
+import { Colors } from '../../../../styles/theme';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   STORE_CATEGORIES,

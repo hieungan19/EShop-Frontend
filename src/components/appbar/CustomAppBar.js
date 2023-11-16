@@ -1,12 +1,9 @@
-import styled from '@emotion/styled';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import {
   AppBar,
   Avatar,
-  Badge,
   Box,
-  Button,
   IconButton,
   Menu,
   MenuItem,
@@ -15,12 +12,16 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import Logo from '../../assets/logo/logo.svg';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectIsLoggedIn } from '../../redux/slice/authSlice';
-import { REMOVE_ACTIVE_USER } from '../../redux/slice/authSlice';
+import {
+  REMOVE_ACTIVE_USER,
+  selectIsLoggedIn,
+} from '../../redux/slice/authSlice';
+import { AppbarHeader, MyButton, StyledBadge } from '../../styles/appbarStyle';
 import AdminOnlyRoute from '../admin-only-route/AdminOnlyRoute';
+import styled from '@emotion/styled';
 
 const settings = ['Account', 'Orders', 'Log Out'];
 const LogoComponent = () => (
@@ -35,21 +36,15 @@ const LogoComponent = () => (
     />
   </Link>
 );
-const StyledBadge = styled(Badge)(({ theme }) => ({
-  '& .MuiBadge-badge': {
-    padding: '0 0px',
-    width: '4px',
-    fontSize: '8px',
-  },
-  marginRight: '8px',
-}));
-const MyButton = styled(Button)(({ theme }) => ({
-  marginRight: '4px',
-  color: 'white',
-  '&:hover': {
-    color: 'black',
-  },
-}));
+
+const StyledMenu = styled(Menu)({
+  position: 'absolute',
+  top: '100%',
+  right: 0,
+  left: 0,
+  width: '100%',
+  zIndex: 1,
+});
 
 const CustomAppBar = () => {
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -102,11 +97,6 @@ const CustomAppBar = () => {
       }}
       open={isMobileMenuOpen}
       onClose={handleMobileMenuClose}
-      PaperProps={{
-        sx: {
-          width: 150, // Thiết lập chiều rộng mong muốn
-        },
-      }}
     >
       <MenuItem>
         <Typography variant='body2'>Home</Typography>
@@ -143,6 +133,7 @@ const CustomAppBar = () => {
       <AppBar sx={{ position: 'static' }}>
         <Toolbar>
           <LogoComponent />
+
           <Box
             sx={{
               display: { xs: 'none', md: 'flex' },

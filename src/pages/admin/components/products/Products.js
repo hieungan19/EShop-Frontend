@@ -17,7 +17,7 @@ import React, { useEffect, useState } from 'react';
 import { deleteDataAxios, fetchDataAxios } from '../../../../api/customAxios'; // Replace with your API utility function
 import SearchAddButton from '../../../../components/search/SearchAddButton';
 import StyleTableHeader from '../../../../components/style-component/StyleTableHeader';
-import { Colors } from '../../../../style/theme';
+import { Colors } from '../../../../styles/theme';
 import ProductFormDialog from './ProductFormDialog';
 import ConfirmDeleteDialog from '../../../../components/dialogs/ConfirmDeleteDialog';
 import { useDispatch } from 'react-redux';

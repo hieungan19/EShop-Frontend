@@ -22,7 +22,7 @@ import ConfirmDeleteDialog from '../../../../components/dialogs/ConfirmDeleteDia
 import TableStyleHeader from '../../../../components/style-component/StyleTableHeader';
 import { selectUserToken } from '../../../../redux/slice/authSlice';
 import { STORE_CATEGORIES } from '../../../../redux/slice/categorySlice';
-import { Colors } from '../../../../style/theme';
+import { Colors } from '../../../../styles/theme';
 import CategoryFormDialog from './CategoryFormDialog';
 export const fetchCategories = async () => {
   console.log('Fetch categories');
@@ -91,7 +91,6 @@ const Categories = () => {
 
       if (response.status === 204) {
         toast.success('Category deleted successfully.');
-        // Inside handleDelete function
         fetchDataAndDispatch();
       }
     } catch (error) {

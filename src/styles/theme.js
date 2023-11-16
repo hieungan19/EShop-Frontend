@@ -1,5 +1,6 @@
 import { createTheme } from '@mui/material/styles';
 import { lighten } from 'polished';
+export const DRAWER_WIDTH = '240px';
 export const Colors = {
   primary: '#588E76',
   secondary: '#FFA54F',
@@ -19,7 +20,7 @@ export const Colors = {
   dim_gray: '#696969',
   dove_gray: '#d5d5d5',
   body_bg: '#f3f6f9',
-  light_gray: 'rgb(230,230,230)',
+  light_gray: 'rgb(245,245,245)',
   ///////////////
   // Solid Color
   ///////////////
@@ -42,6 +43,7 @@ const theme = createTheme({
         body: {
           padding: 0,
           margin: 0,
+          backgroundColor: Colors.light_gray,
         },
       },
     },

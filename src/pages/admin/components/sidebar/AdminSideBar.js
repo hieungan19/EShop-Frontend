@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useState } from 'react';
-import { Colors } from '../../../../style/theme';
+import { Colors } from '../../../../styles/theme';
 const drawerWidth = 200;
 
 const AdminSideBar = () => {
