@@ -19,9 +19,10 @@ import {
   REMOVE_ACTIVE_USER,
   selectIsLoggedIn,
 } from '../../redux/slice/authSlice';
-import { AppbarHeader, MyButton, StyledBadge } from '../../styles/appbarStyle';
+import { MyButton, StyledBadge } from '../../styles/appbarStyle';
 import AdminOnlyRoute from '../admin-only-route/AdminOnlyRoute';
 import styled from '@emotion/styled';
+import { selectCartTotalQuantity } from '../../redux/slice/cartSlice';
 
 const settings = ['Account', 'Orders', 'Log Out'];
 const LogoComponent = () => (
@@ -52,7 +53,7 @@ const CustomAppBar = () => {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const checkIsLogedIn = useSelector(selectIsLoggedIn);
-
+  const cartQuantity = useSelector(selectCartTotalQuantity);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -173,8 +174,8 @@ const CustomAppBar = () => {
 
             {isLoggedIn === true ? (
               <>
-                <IconButton aria-label='cart'>
-                  <StyledBadge badgeContent={4} color='secondary'>
+                <IconButton aria-label='cart' onClick={() => navigate('/cart')}>
+                  <StyledBadge badgeContent={cartQuantity} color='secondary'>
                     <ShoppingCartIcon sx={{ fontSize: 32 }} />
                   </StyledBadge>
                 </IconButton>

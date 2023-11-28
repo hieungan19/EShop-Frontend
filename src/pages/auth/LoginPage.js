@@ -11,14 +11,22 @@ import { Container } from '@mui/material';
 import LoginImg from '../../assets/images/Login.jpg';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { SET_ACTIVE_USER } from '../../redux/slice/authSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  SET_ACTIVE_USER,
+  selectUserId,
+  selectUserToken,
+} from '../../redux/slice/authSlice';
 import { ToastContainer, toast } from 'react-toastify';
+import { fetchDataAxios } from '../../api/customAxios';
+import { STORE_ITEMS_TO_CART } from '../../redux/slice/cartSlice';
 const login = async (email, password) => {};
 
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const token = useSelector(selectUserToken);
+  const userId = useSelector(selectUserId);
 
   const redirectUser = () => {
     navigate('/');
@@ -36,7 +44,11 @@ const Login = () => {
         email: email,
         password: password,
       });
-
+      const cartItems = await fetchDataAxios({
+        url: `carts/${userId}`,
+        token: token,
+      });
+      dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
       const r = response.data;
       dispatch(
         SET_ACTIVE_USER({

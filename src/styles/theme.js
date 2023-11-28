@@ -61,13 +61,6 @@ const theme = createTheme({
         },
       },
     },
-    MuiDivider: {
-      styleOverrides: {
-        root: {
-          borderColor: lighten(0.1, Colors.primary),
-        },
-      },
-    },
   },
 });
 export default theme;

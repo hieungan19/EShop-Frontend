@@ -30,6 +30,7 @@ import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
+import CouponForm from './CouponFormModal';
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -64,6 +65,14 @@ const Coupons = () => {
   const [filterAmount, setFilterAmount] = useState('');
   const [filterStartDate, setFilterStartDate] = useState();
   const [filterEndDate, setFilterEndDate] = useState();
+
+  //form
+  const handleOpenCouponForm = () => {
+    setOpen(true);
+  };
+  const handleCloseCouponForm = () => {
+    setOpen(false);
+  };
 
   // Discount Amount or Percentage filter
   const [showFilterForm, setShowFilterForm] = useState(false);
@@ -223,6 +232,7 @@ const Coupons = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <CouponForm open={open} onClose={handleCloseCouponForm} />
     </div>
   );
 };

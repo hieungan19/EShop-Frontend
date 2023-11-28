@@ -12,6 +12,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
+import Pagination from '../../../../components/pagination/Pagination';
 import useDebounce from '../../../../customHooks/useDebounce';
 import React, { useEffect, useState } from 'react';
 import { deleteDataAxios, fetchDataAxios } from '../../../../api/customAxios'; // Replace with your API utility function
@@ -24,7 +25,7 @@ import { useDispatch } from 'react-redux';
 import { STORE_PRODUCTS } from '../../../../redux/slice/productSlice';
 import { toast } from 'react-toastify';
 
-const fetchProducts = async () => {
+export const fetchProducts = async () => {
   try {
     const response = await fetchDataAxios({ url: 'products' });
     return response;
@@ -36,7 +37,7 @@ const ProductTable = () => {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 2;
   const [open, setOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({ id: '', name: '' });
   const [isOpenDelete, setOpenDelete] = useState(false);
@@ -89,23 +90,6 @@ const ProductTable = () => {
   );
 
   const pageNumbers = Math.ceil(filteredProducts.length / itemsPerPage);
-
-  const renderPageNumbers = () => {
-    const pageButtons = [];
-    for (let i = 1; i <= pageNumbers; i++) {
-      pageButtons.push(
-        <Button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          variant={currentPage === i ? 'contained' : 'outlined'}
-          sx={{ margin: '0 2px' }}
-        >
-          {i}
-        </Button>
-      );
-    }
-    return pageButtons;
-  };
 
   const handleDeleteProduct = async () => {
     try {
@@ -194,30 +178,11 @@ const ProductTable = () => {
             ))}
           </TableBody>
         </Table>
-        {/* Pagination */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'center',
-            margin: '16px 0',
-          }}
-        >
-          <Button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            sx={{ margin: '0 2px', fontSize: '24px', p: 0 }}
-          >
-            {'<'}
-          </Button>
-          {renderPageNumbers()}
-          <Button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === pageNumbers}
-            sx={{ margin: '0 2px', fontSize: '24px', p: 0 }}
-          >
-            {'>'}
-          </Button>
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={pageNumbers}
+          onPageChange={setCurrentPage}
+        />
       </TableContainer>
       <ProductFormDialog
         open={open}

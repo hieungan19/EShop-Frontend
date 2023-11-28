@@ -3,90 +3,113 @@ import {
   CardMedia,
   Checkbox,
   IconButton,
-  MenuItem,
   TableCell,
   TableRow,
-  TextField,
-  Typography,
 } from '@mui/material';
 import { useState } from 'react';
 import StyleInputNumberButton from '../style-component/StyleInputNumberButton';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUserId, selectUserToken } from '../../redux/slice/authSlice';
+import { toast } from 'react-toastify';
+import axios from 'axios';
+import {
+  deleteDataAxios,
+  fetchDataAxios,
+  putDataAxios,
+} from '../../api/customAxios';
+import { STORE_ITEMS_TO_CART } from '../../redux/slice/cartSlice';
 
-const CartItemRow = ({ product, optionId, firstQuantity, onDelete }) => {
+const CartItemRow = ({ item, onSelect }) => {
   const [isChecked, setChecked] = useState(false);
-  const [selectedOptionId, setSelectedOptionId] = useState(optionId);
-  const [quantity, setQuantity] = useState(firstQuantity);
+  const [quantity, setQuantity] = useState(item.quantity);
+  const [total, setTotal] = useState(item.currentPrice * quantity);
+  const userId = useSelector(selectUserId);
+  const token = useSelector(selectUserToken);
+  const dispatch = useDispatch();
 
   //handle quantity
   const handleQuantityIncrease = () => {
     setQuantity((prevQuantity) => prevQuantity + 1);
+    changeOptionQuantity(quantity + 1);
   };
 
   const handleQuantityDecrease = () => {
     if (quantity > 1) {
       setQuantity((prevQuantity) => prevQuantity - 1);
+      changeOptionQuantity(quantity - 1);
     }
   };
 
-  const { name, image, options } = product;
-  const option = options.find((opt) => opt.id === optionId);
+  //delete cart item
+  const onDelete = async () => {
+    try {
+      const data = {
+        userId: userId,
+        optionId: item.id,
+      };
+      const response = await deleteDataAxios({
+        url: 'carts',
+        data: data,
+        token: token,
+      });
 
-  if (!option) {
-    // Handle the case where the option with the given ID is not found
-    return null;
-  }
-
-  const optionPrice = options.find((opt) => opt.id === selectedOptionId).price;
-
-  const total = optionPrice * quantity;
-
-  const onToggleSelect = () => {
-    setChecked(!isChecked);
+      const cartItems = await fetchDataAxios({
+        url: `carts/${userId}`,
+        token: token,
+      });
+      dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
+      toast.success('Delete success');
+    } catch (error) {
+      toast.error('Failed. ');
+    }
   };
 
   const handleQuantityChange = (event) => {
     setQuantity(event.target.value);
+    changeOptionQuantity(event.target.value);
   };
 
-  const onOptionChange = (e) => {
-    const newOptionId = e.target.value;
-    setSelectedOptionId(newOptionId);
-  };
+  const changeOptionQuantity = async (quantity) => {
+    setTotal(item.currentPrice * quantity);
 
+    try {
+      const data = {
+        userId: userId,
+        optionId: item.id,
+        quantity: quantity,
+      };
+      const response = putDataAxios({ url: 'carts', data: data, token: token });
+    } catch (error) {
+      toast.error('Failed to change option quantity.');
+    }
+  };
   return (
     <TableRow>
       <TableCell>
-        <Checkbox checked={isChecked} onChange={onToggleSelect} />
+        <Checkbox
+          checked={isChecked}
+          onChange={() => {
+            setChecked(!isChecked);
+
+            onSelect({
+              item: item,
+              quantity: quantity,
+              isChecked: !isChecked,
+            });
+          }}
+        />
       </TableCell>
       <TableCell>
         <CardMedia
           component='img'
-          alt={name}
+          alt={item.productName}
           sx={{ height: '60px', width: '60px', objectFit: 'cover' }}
-          image={image}
+          image={item.productImageUrl}
         />
       </TableCell>
-      <TableCell>
-        <Typography variant='body2' sx={{ marginLeft: 1 }}>
-          {name}
-        </Typography>
-      </TableCell>
-      <TableCell>
-        <TextField
-          select
-          label='Options'
-          value={selectedOptionId}
-          onChange={onOptionChange}
-          margin='dense'
-        >
-          {options.map((opt) => (
-            <MenuItem key={opt.id} value={opt.id}>
-              {opt.name}
-            </MenuItem>
-          ))}
-        </TextField>
-      </TableCell>
-      <TableCell>{optionPrice}</TableCell>
+      <TableCell>{item.productName}</TableCell>
+      <TableCell>{item.name}</TableCell>
+
       <TableCell>
         <StyleInputNumberButton
           handleChange={handleQuantityChange}

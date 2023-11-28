@@ -1,13 +1,52 @@
-import { Box, Button, Chip, Container, Grid, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Container,
+  Grid,
+  Typography,
+} from '@mui/material';
 import Rating from '@mui/material/Rating';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Colors } from '../../styles/theme';
 import ReviewList from '../review/ReviewList';
 import StyleInputNumberButton from '../style-component/StyleInputNumberButton';
-
+import { fetchDataAxios, postDataAxios } from '../../api/customAxios';
+import { useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectUserId, selectUserToken } from '../../redux/slice/authSlice';
+import { STORE_ITEMS_TO_CART } from '../../redux/slice/cartSlice';
 const ProductDetail = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
   const [quantity, setQuantity] = useState(1);
+  const { id } = useParams();
+  const [product, setProduct] = useState({});
+  const [averageStar, setAverageStar] = useState(0);
+  const userId = useSelector(selectUserId);
+  const token = useSelector(selectUserToken);
+  const dispatch = useDispatch();
+
+  const fetchProductById = async () => {
+    try {
+      setIsLoading(true);
+      console.log('Fetch');
+      const response = await fetchDataAxios({ url: `products/${id}` });
+
+      setProduct(response);
+      setAverageStar(response.averageStar);
+      setIsLoading(false);
+    } catch (error) {
+      toast.error('Fetch product failed.');
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProductById();
+  }, []);
 
   //handle quantity
   const handleQuantityIncrease = () => {
@@ -20,38 +59,6 @@ const ProductDetail = () => {
     }
   };
 
-  // Sample product data (replace it with your actual product data)
-  const product = {
-    id: 1,
-    name: 'Product Name',
-    maxPrice: 50000,
-    minPrice: 10000,
-    description: 'Product description goes here.',
-    category: 'Electronics',
-    image: 'https://placekitten.com/200/300', // Replace with the actual image URL
-    options: [
-      { id: 1, name: 'Option 1', price: 2.99 },
-      { id: 2, name: 'Option 2', price: 4.99 },
-      // Add more options as needed
-    ],
-    reviews: [
-      {
-        id: 1,
-        rating: 4,
-        review: 'Great product!',
-        user: { id: 1, name: 'John Doe', avatar: 'user1_avatar_url.jpg' },
-        createdAt: new Date('2023-01-15T12:30:00'), // Replace with actual datetime
-      },
-      {
-        id: 2,
-        rating: 5,
-        review: 'Excellent quality.',
-        user: { id: 2, name: 'Jane Smith', avatar: 'user2_avatar_url.jpg' },
-        createdAt: new Date('2023-01-16T10:45:00'), // Replace with actual datetime
-      },
-      // Add more reviews as needed
-    ],
-  };
   const handleOptionChange = (optionId) => {
     setSelectedOption(optionId);
   };
@@ -60,20 +67,33 @@ const ProductDetail = () => {
     setQuantity(event.target.value);
   };
 
-  const handleAddToCart = () => {
-    // Handle adding the product to the cart (dispatch an action or call an API)
-    console.log('Product added to cart:', {
-      ...product,
-      selectedOption,
+  const handleAddToCart = async () => {
+    const data = {
+      userId,
+      optionId: selectedOption,
       quantity,
-    });
+    };
+    console.log(data);
+    try {
+      const response = await postDataAxios({
+        url: 'carts',
+        token: token,
+        data: data,
+      });
+      const cartItems = await fetchDataAxios({
+        url: `carts/${userId}`,
+        token: token,
+      });
+      dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
+
+      toast.success('Add option to cart sucessfully. ');
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
-
-  const averageRating =
-    product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-    product.reviews.length;
-
-  return (
+  return isLoading ? (
+    <CircularProgress />
+  ) : (
     <Grid container spacing={2} mt={1}>
       {/* Left Section - Product Image */}
       <Container sx={{ width: '100%', backgroundColor: Colors.white }}>
@@ -89,7 +109,7 @@ const ProductDetail = () => {
             }}
           >
             <img
-              src={product.image}
+              src={product.imageUrl}
               alt={product.name}
               style={{ width: '300px', height: '300px', objectFit: 'cover' }}
             />
@@ -104,10 +124,19 @@ const ProductDetail = () => {
                 <Typography variant='h5'>
                   {product.name}{' '}
                   <Chip
-                    label={`- 30%`}
+                    label={
+                      product.currentCoupon
+                        ? `-${product.currentCoupon.discountPercent}%` ??
+                          `$-${product.currentCoupon.discountAmount}đ`
+                        : null
+                    }
                     color='secondary'
                     size='small'
-                    sx={{ fontWeight: 'bold' }}
+                    sx={{
+                      display: product.currentCouponId > 0 ? 'inline' : 'none',
+                      fontWeight: 'bold',
+                      padding: 1,
+                    }}
                   />
                 </Typography>
                 <Typography
@@ -116,13 +145,25 @@ const ProductDetail = () => {
                   color={Colors.secondary}
                 >
                   {product.minPrice !== product.maxPrice
-                    ? `${product.minPrice.toLocaleString()} - ${product.maxPrice.toLocaleString()}`
-                    : `${product.minPrice.toLocaleString()}`}{' '}
+                    ? `${product.currentMinPrice} - ${product.currentMaxPrice}`
+                    : `${product.currentMinPrice}`}{' '}
                   đ
                 </Typography>
-                <Typography variant='body2' color='textSecondary' mt={1}>
-                  Category: {product.category}
-                </Typography>
+                {product.currentCoupon != null ? (
+                  <Typography
+                    sx={{ textDecoration: 'line-through' }}
+                    variant='body2'
+                    color={Colors.dim_gray}
+                  >
+                    {product.minPrice !== product.maxPrice
+                      ? `${product.minPrice} - ${product.maxPrice}`
+                      : `${product.minPrice}`}{' '}
+                    đ
+                  </Typography>
+                ) : null}
+                {/* <Typography variant='body2' color='textSecondary' mt={1}>
+                  Category: {product.category.name}
+                </Typography> */}
                 <Box display={'flex'} alignItems={'flex-end'}>
                   <Typography
                     variant='body2'
@@ -131,7 +172,7 @@ const ProductDetail = () => {
                   >
                     Average Rating:
                   </Typography>
-                  <Rating value={averageRating} readOnly />
+                  <Rating value={averageStar} readOnly />
                 </Box>
 
                 {/* Product Description, Category */}
@@ -141,17 +182,21 @@ const ProductDetail = () => {
 
                 {/* Options */}
                 <Box sx={{ my: 2, display: 'flex', gap: 1 }}>
-                  {product.options.map((option) => (
-                    <Button
-                      key={option.id}
-                      variant={
-                        selectedOption === option.id ? 'contained' : 'outlined'
-                      }
-                      onClick={() => handleOptionChange(option.id)}
-                    >
-                      {option.name} - ${option.price.toFixed(2)}
-                    </Button>
-                  ))}
+                  {product.options
+                    ? product.options.map((option) => (
+                        <Button
+                          key={option.id}
+                          variant={
+                            selectedOption === option.id
+                              ? 'contained'
+                              : 'outlined'
+                          }
+                          onClick={() => handleOptionChange(option.id)}
+                        >
+                          {option.name} - ${option.price.toFixed(2)}
+                        </Button>
+                      ))
+                    : null}
                 </Box>
                 {/* Quantity */}
                 <StyleInputNumberButton
@@ -170,13 +215,17 @@ const ProductDetail = () => {
                   >
                     Option Price: $
                     {product.options
-                      .find((o) => o.id === selectedOption)
-                      .price.toFixed(2)}{' '}
+                      ? product.options
+                          .find((o) => o.id === selectedOption)
+                          .price.toFixed(2)
+                      : null}{' '}
                     | Total Price: $
-                    {(
-                      product.options.find((o) => o.id === selectedOption)
-                        .price * quantity
-                    ).toFixed(2)}
+                    {product.options
+                      ? (
+                          product.options.find((o) => o.id === selectedOption)
+                            .price * quantity
+                        ).toFixed(2)
+                      : null}
                   </Typography>
                 )}
 
@@ -195,11 +244,12 @@ const ProductDetail = () => {
           </Grid>
         </Grid>
       </Container>
-
+      {/* Reviews Section */}
       <Grid item xs={12} md={12}>
-        {/* Reviews Section */}
         <Container sx={{ width: '100%', backgroundColor: Colors.white }}>
-          <ReviewList product={product} />
+          {product.reviews && product.reviews.length != 0 ? (
+            <ReviewList reviews={product.reviews} />
+          ) : null}
         </Container>
       </Grid>
     </Grid>

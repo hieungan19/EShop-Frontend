@@ -1,41 +1,43 @@
-import React from 'react';
 import {
-  Card,
-  CardMedia,
-  CardContent,
-  Typography,
-  Button,
-  Chip,
   Box,
+  Card,
+  CardContent,
+  CardMedia,
+  Chip,
   Rating,
+  Typography,
 } from '@mui/material';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Colors } from '../../styles/theme';
 
-const ProductCard = ({
-  name,
-  description,
-  price,
-  imageURL,
-  inStock,
-  rating,
-  numReviews,
-}) => {
+const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
+
+  const handleCardClick = () => {
+    navigate(`/products/${product.id}`);
+  };
   return (
-    <Card sx={{ maxWidth: 250 }}>
+    <Card sx={{ maxWidth: 200, height: 260, mb: 2 }} onClick={handleCardClick}>
       <Box sx={{ position: 'relative' }}>
         <CardMedia
           component='img'
-          alt={name}
+          alt={product.name}
           height='140'
-          image={imageURL}
+          image={product.imageUrl}
           sx={{ objectFit: 'cover' }}
         />
         <Chip
-          label={`-30%`}
+          label={
+            product.currentCoupon
+              ? `-${product.currentCoupon.discountPercent}%` ??
+                `$-${product.currentCoupon.discountAmount}đ`
+              : null
+          }
           color='secondary'
           size='small'
           sx={{
+            display: product.currentCouponId > 0 ? 'block' : 'none',
             position: 'absolute',
             top: 2,
             right: 2,
@@ -45,29 +47,13 @@ const ProductCard = ({
         />
       </Box>
 
-      <CardContent>
-        <Box display={'flex'} justifyContent={'space-between'}>
-          <Typography variant='h6' component='div'>
-            {name}
-          </Typography>
-          <Box>
-            {inStock ? (
-              <Chip
-                label='In Stock'
-                variant='outlined'
-                sx={{ color: Colors.primary, marginRight: 1 }}
-              />
-            ) : (
-              <Chip
-                label='Out of Stock'
-                variant='outlined'
-                sx={{ color: Colors.secondary, marginRight: 1 }}
-              />
-            )}
-          </Box>
-        </Box>
+      <CardContent sx={{ padding: 1 }}>
+        <Typography variant='body2' fontWeight={'bold'}>
+          {product.name}
+        </Typography>
+
         <Typography
-          variant='body2'
+          variant='caption'
           color='textSecondary'
           sx={{
             overflow: 'hidden',
@@ -77,37 +63,23 @@ const ProductCard = ({
             WebkitLineClamp: 2, // Number of lines to show
           }}
         >
-          {description}
+          {product.description}
         </Typography>
-        <Typography variant='body1' sx={{ marginTop: 1, fontWeight: 'bold' }}>
-          Price: ${price}
+        <Typography
+          variant='body2'
+          sx={{ marginTop: 1, fontWeight: 'bold', color: Colors.secondary }}
+        >
+          {product.currentMaxPrice === product.currentMinPrice
+            ? product.currentMaxPrice
+            : `${product.currentMinPrice} - ${product.currentMaxPrice}`}
         </Typography>
 
-        <Box
-          display='flex'
-          justifyContent='space-between'
-          alignItems='center'
-          mb={2}
-        >
-          <Rating
-            name='product-rating'
-            value={rating}
-            precision={0.5}
-            readOnly
-          />
-          <Typography variant='body2' color='textSecondary'>
-            {`(${numReviews} reviews)`}
-          </Typography>
-        </Box>
-        <Button
-          sx={{ width: '100%' }}
-          variant='contained'
-          color='primary'
-          startIcon={<ShoppingCartIcon />}
-          disabled={!inStock}
-        >
-          Add to Cart
-        </Button>
+        <Rating
+          name='product-rating'
+          value={product.averageStar}
+          precision={0.5}
+          readOnly
+        />
       </CardContent>
     </Card>
   );

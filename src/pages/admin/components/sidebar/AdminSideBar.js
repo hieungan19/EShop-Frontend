@@ -1,31 +1,58 @@
+import React, { useState } from 'react';
 import {
   Avatar,
-  Box,
   Container,
+  Drawer,
   List,
   ListItem,
   ListItemButton,
+  ListItemIcon,
   ListItemText,
+  Toolbar,
   Typography,
 } from '@mui/material';
-import React, { useState } from 'react';
-import { Colors } from '../../../../styles/theme';
-const drawerWidth = 200;
 
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CategoryIcon from '@mui/icons-material/Category';
+import HomeIcon from '@mui/icons-material/Home';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import StoreIcon from '@mui/icons-material/Store';
+import { Colors } from '../../../../styles/theme';
+import GroupIcon from '@mui/icons-material/Group';
+import { useNavigate } from 'react-router-dom';
+const drawerWidth = 220;
+const itemList = [
+  'HOME',
+  'CATEGORIES',
+  'PRODUCTS',
+  'COUPONS',
+  'ORDERS',
+  'CUSTOMERS',
+];
 const AdminSideBar = () => {
   const [activeIndex, setActiveIndex] = useState(0);
-
+  const navigate = useNavigate();
   const handleListItemClick = (index) => {
     setActiveIndex(index);
+    const selectedRoute = itemList[index];
+    navigate(`/admin/${selectedRoute.toLowerCase()}`);
   };
+
+  const icons = [
+    <HomeIcon key='home-icon' />,
+    <CategoryIcon key='category-icon' />,
+    <StoreIcon key='store-icon' />,
+    <LocalOfferIcon key='local-offer-icon' />,
+    <AssignmentIcon key='assignment-icon' />,
+    <GroupIcon key='customer' />,
+  ];
+
   return (
-    <Box
+    <Drawer
       sx={{
+        overflow: 'hidden',
         width: drawerWidth,
-        minHeight: '100vh',
-        backgroundColor: Colors.light_gray,
         flexShrink: 0,
-        position: 'sticky',
         '& .MuiDrawer-paper': {
           width: drawerWidth,
           boxSizing: 'border-box',
@@ -34,7 +61,8 @@ const AdminSideBar = () => {
       variant='permanent'
       anchor='left'
     >
-      <Container sx={{ py: 4, backgroundColor: Colors.dove_gray }}>
+      <Toolbar />
+      <Container sx={{ py: 4 }}>
         <Avatar sx={{ mx: 'auto', p: 0, alignSelf: 'center' }} />
         <Typography
           sx={{
@@ -47,34 +75,46 @@ const AdminSideBar = () => {
           User name
         </Typography>
       </Container>
-      <List sx={{ backgroundColor: Colors.light_gray, py: 0 }}>
-        {['HOME', 'CATEGORIES', 'PRODUCTS', 'DISCOUNT', 'ORDERS'].map(
-          (text, index) => (
-            <ListItem
-              key={index}
-              disablePadding
+      <List sx={{ py: 0 }}>
+        {itemList.map((text, index) => (
+          <ListItem
+            key={index}
+            disablePadding
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'start',
+              borderBottom:
+                index === activeIndex ? `2px solid ${Colors.primary}` : 'none',
+            }}
+          >
+            <ListItemButton
+              selected={index === activeIndex}
+              onClick={() => handleListItemClick(index)}
               sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'start',
-                borderBottom:
-                  index === activeIndex
-                    ? `2px solid ${Colors.primary}`
-                    : 'none',
+                width: drawerWidth,
+                color: index === activeIndex ? Colors.white : Colors.dark,
               }}
             >
-              <ListItemButton
-                selected={index === activeIndex}
-                onClick={() => handleListItemClick(index)}
-                sx={{ width: drawerWidth }}
+              <ListItemIcon
+                style={{
+                  color: index === activeIndex ? Colors.white : Colors.dark,
+                }}
               >
-                <ListItemText primary={text} sx={{ fontWeight: 600 }} />
-              </ListItemButton>
-            </ListItem>
-          )
-        )}
+                {icons[index]}
+              </ListItemIcon>
+              <ListItemText
+                primary={text}
+                sx={{
+                  fontWeight: 600,
+                  color: index === activeIndex ? Colors.white : 'inherit',
+                }}
+              />
+            </ListItemButton>
+          </ListItem>
+        ))}
       </List>
-    </Box>
+    </Drawer>
   );
 };
 

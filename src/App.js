@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Slider from './components/slider/Slider';
 import theme from './styles/theme';
 import { ToastContainer } from 'react-toastify';
-import Admin from './pages/admin/components/Admin';
+import Admin from './pages/admin/Admin';
 import AdminOnlyRoute from './components/admin-only-route/AdminOnlyRoute';
 import { CssBaseline } from '@mui/material';
 import ProductList from './components/product/ProductList';
@@ -16,6 +16,16 @@ import ProductCard from './components/product/ProductCard';
 import { Home } from '@mui/icons-material';
 import CartItemRow from './components/cart/CartItem';
 import ReviewForm from './components/review/ReviewForm';
+import OrderCard from './components/order/OrderCard';
+import OrderedProductItemCard from './components/order/OrderProductItemCard';
+import OrderItemList from './components/order/OrderItemList';
+import Invoice from './components/order/Invoice';
+import UserProfilePage from './pages/user/UserProfilePage';
+import OrderForm from './components/order/OrderInputForm';
+import ProductFilter from './components/product-filter/ProductFilter';
+import ProductSort from './components/product-filter/ProductSort';
+import CartPage from './pages/cart/CartPage';
+import CreateOrderPage from './pages/order/CreateOrderPage';
 function App() {
   const product = {
     id: 1,
@@ -53,13 +63,23 @@ function App() {
       <CssBaseline />
       <ToastContainer autoClose={1000} />
       <CustomAppBar />
-      {/* <CartItemRow product={product} optionId={1} firstQuantity={3} />
-      <ProductDetail /> */}
-      <ReviewForm />
+      {/* <ProductDetail /> */}
+      {/* <OrderCard />
+      <OrderItemList /> */}
+      {/* <OrderedProductItemCard /> */}
+      {/* <ReviewForm /> */}
+      {/* <Invoice />
+      <OrderForm />
+      <UserProfilePage /> */}
+      {/* <ProductFilter /> */}
+      {/* <ProductSort /> */}
       <Routes>
         <Route path='/' element={<HomePage />} />
+        <Route path='/products/:id' element={<ProductDetail />} />
+        <Route path='/cart' element={<CartPage />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
+        <Route path='create-order' element={<CreateOrderPage />} />
         <Route
           path='/admin/*'
           element={
@@ -69,7 +89,6 @@ function App() {
           }
         />
       </Routes>
-
       <CustomFooter />
     </ThemeProvider>
   );

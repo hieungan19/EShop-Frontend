@@ -9,17 +9,18 @@ const Review = ({ review }) => {
       sx={{ mb: 2, display: 'flex', alignItems: 'flex-start' }}
     >
       <Avatar
-        src={review.user.avatar}
-        alt={review.user.name}
+        src={review.avatar}
+        alt={review.userName}
         sx={{ marginRight: 1 }}
       />
       <Box>
         <Typography variant='body2' color='textSecondary' sx={{ mb: 1, mt: 1 }}>
-          {review.user.name} - {format(review.createdAt, 'MMMM dd, yyyy HH:mm')}
+          {review.userName} -{' '}
+          {/* {format(review.createdDate, 'MMMM dd, yyyy HH:mm')} */}
         </Typography>
-        <Rating value={review.rating} readOnly />
+        <Rating value={review.star} readOnly />
         <Typography variant='body2' color='textSecondary' sx={{ mt: 1 }}>
-          {review.review}
+          {review.detail}
         </Typography>
       </Box>
     </Box>

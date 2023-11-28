@@ -40,7 +40,7 @@ const StyledProductTitle = styled(Typography)(({}) => ({
   fontWeight: '500',
 }));
 
-const StyledTextField = styled(TextField)`
+export const StyledTextField = styled(TextField)`
   textarea {
     resize: both;
   }

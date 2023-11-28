@@ -1,41 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ProductCard from './ProductCard';
+import { Grid } from '@mui/material';
+import Pagination from '../pagination/Pagination';
 
-const ProductList = () => {
-  const currentProducts = [
-    {
-      id: 1,
-      name: 'Product 1',
-      price: 20,
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-      imageURL: 'https://placekitten.com/200/300', // Replace with your image URL
-      inStock: true,
-      rating: 4.5,
-      numReviews: 10,
-    },
-    {
-      id: 2,
-      name: 'Product 2',
-      price: 30,
-      description:
-        'Vestibulum ac diam sit amet quam vehicula elementum sed sit amet dui.',
-      imageURL: 'https://placekitten.com/200/301', // Replace with your image URL
-      inStock: false,
-      rating: 3.8,
-      numReviews: 15,
-    },
-    // Add more products as needed
-  ];
+const ProductList = ({ products }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
+  const pageNumbers = Math.ceil(products.length / itemsPerPage);
+  const indexOfLastProduct = currentPage * itemsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
+  const currentProducts = products.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct
+  );
   return (
-    <>
-      {currentProducts.map((product) => {
-        return (
-          <div key={product.id}>
-            <ProductCard {...product} />
-          </div>
-        );
-      })}
-    </>
+    <Grid container spacing={1}>
+      {currentProducts.map((product) => (
+        <Grid item key={product.id} xs={12} sm={6} md={4} lg={3}>
+          <ProductCard product={product} />
+        </Grid>
+      ))}
+      <Grid item alignSelf={'center'} xs={12}>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={pageNumbers}
+          onPageChange={setCurrentPage}
+        />
+      </Grid>
+    </Grid>
   );
 };
 

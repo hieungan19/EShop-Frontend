@@ -21,25 +21,19 @@ import TableStyleHeader from '../../../../components/style-component/StyleTableH
 import { selectUserToken } from '../../../../redux/slice/authSlice';
 import { STORE_CUSTOMERS } from '../../../../redux/slice/customerSlice';
 import { Colors } from '../../../../styles/theme';
-import { STORE_ORDERS } from '../../../../redux/slice/orderSlice';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import Pagination from '../../../../components/pagination/Pagination';
-import { OrderStatus } from '../../../../utils/Constant';
 
-const Orders = () => {
+const Customers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const token = useSelector(selectUserToken);
-  const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [customers, setCustomers] = useState([]);
 
   const dispatch = useDispatch();
 
-  const fetchOrders = async () => {
-    console.log('Fetch orders');
+  const fetchCustomers = async () => {
+    console.log('Fetch users');
     try {
-      const response = await fetchDataAxios({ url: 'orders', token: token });
+      const response = await fetchDataAxios({ url: 'users', token: token });
+      console.log(response);
       return response;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -47,11 +41,11 @@ const Orders = () => {
   };
 
   const fetchDataAndDispatch = async () => {
-    const response = await fetchOrders();
+    const response = await fetchCustomers();
 
     if (response) {
-      setOrders(response);
-      dispatch(STORE_ORDERS({ orders: response }));
+      setCustomers(response.users);
+      dispatch(STORE_CUSTOMERS({ customers: response.users }));
     }
   };
 
@@ -59,32 +53,23 @@ const Orders = () => {
     fetchDataAndDispatch();
   }, []);
 
-  const filteredOrders = orders
-    ? orders.filter((o) =>
-        o.userName.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCustomers = customers
+    ? customers.filter((c) =>
+        c.fullName.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
   };
 
-  const indexOfLastProduct = currentPage * itemsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
-  const currentOrders = filteredOrders.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
-  );
-
-  const pageNumbers = Math.ceil(filteredOrders.length / itemsPerPage);
   return (
     <div style={{ marginTop: '10px', marginRight: '10px' }}>
       <div
         style={{ display: 'flex', alignItems: 'stretch', marginBottom: '10px' }}
       >
         <TextField
-          label='Search Order by User name'
+          label='Search Customers'
           variant='outlined'
           fullWidth
           margin='normal'
@@ -107,37 +92,26 @@ const Orders = () => {
             <TableRow>
               <TableStyleHeader>ID</TableStyleHeader>
               <TableStyleHeader>Customer Name</TableStyleHeader>
-              <TableStyleHeader>Total</TableStyleHeader>
-              <TableStyleHeader>Is Payed</TableStyleHeader>
-              <TableStyleHeader>Status</TableStyleHeader>
+              <TableStyleHeader>Email</TableStyleHeader>
+              <TableStyleHeader>Default Address</TableStyleHeader>
+              <TableStyleHeader>Default Phone Number</TableStyleHeader>
             </TableRow>
           </TableHead>
           <TableBody>
-            {currentOrders.map((order) => (
-              <TableRow key={order.id}>
-                <TableCell>{order.id}</TableCell>
-                <TableCell>{order.userName}</TableCell>
-                <TableCell>{order.totalPrice}</TableCell>
-                <TableCell>
-                  {order.isPayed === true ? (
-                    <CheckCircleIcon color='success' />
-                  ) : (
-                    <CancelIcon color='error' />
-                  )}
-                </TableCell>
-                <TableCell>{OrderStatus[order.status]}</TableCell>
+            {filteredCustomers.map((customer) => (
+              <TableRow key={customer.id}>
+                <TableCell>{customer.id}</TableCell>
+                <TableCell>{customer.fullName}</TableCell>
+                <TableCell>{customer.email}</TableCell>
+                <TableCell>{customer.address ?? 'N/A'}</TableCell>
+                <TableCell>{customer.phoneNumber ?? 'N/A'}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={pageNumbers}
-          onPageChange={setCurrentPage}
-        />
       </TableContainer>
     </div>
   );
 };
 
-export default Orders;
+export default Customers;
