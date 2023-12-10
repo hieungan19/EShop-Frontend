@@ -47,9 +47,15 @@ const Slider = () => {
           >
             {index === currentSlide && (
               <>
-                <img src={image} alt='slide' style={{ width: '100%' }} />
+                <img
+                  src={image}
+                  alt='slide'
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
                 <Box className='content'>
-                  <Typography variant='h3'>{heading}</Typography>
+                  <Typography variant='h6' textTransform={'uppercase'}>
+                    {heading}
+                  </Typography>
                   <Typography variant='body1'>{desc}</Typography>
                   <hr />
                 </Box>

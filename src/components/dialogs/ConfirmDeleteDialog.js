@@ -18,7 +18,7 @@ const ConfirmDeleteDialog = ({ open, onClose, onConfirm, data }) => {
         <Button onClick={onClose} color='primary'>
           Cancel
         </Button>
-        <Button onClick={onConfirm} color='secondary'>
+        <Button onClick={onConfirm} variant='contained' color='secondary'>
           Delete
         </Button>
       </DialogActions>

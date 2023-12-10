@@ -1,0 +1,15 @@
+.filter {
+  h4 {
+    margin-top: 1rem;
+  }
+  .category button {
+    display: block;
+    text-align: left;
+    width: 80%;
+    height: 3rem;
+    border: none;
+    cursor: pointer;
+    // margin-bottom: 5px;
+    border-bottom: 1px solid #777;
+  }
+}

@@ -26,8 +26,8 @@ const CustomFooter = () => {
               About Us
             </Typography>
             <Typography variant='body2' color='text.secondary'>
-              We are XYZ company, dedicated to providing the best service to our
-              customers.
+              Chúng tôi là Lamut, mang đến cho bạn trải nghiệm tuyệt vời từ
+              những nông trại tươi mát.
             </Typography>
           </Grid>
           <Grid item xs={12} sm={4}>

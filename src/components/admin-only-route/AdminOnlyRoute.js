@@ -4,7 +4,7 @@ import { selectUserRole } from '../../redux/slice/authSlice';
 
 const AdminOnlyRoute = ({ children }) => {
   const roleName = useSelector(selectUserRole);
-  if (roleName !== 'Admin') {
+  if (roleName === 'Admin') {
     return children;
   }
   return null;
