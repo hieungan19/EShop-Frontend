@@ -39,7 +39,7 @@ const ProductTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2;
   const [open, setOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState({ id: '', name: '' });
+  const [currentProduct, setCurrentProduct] = useState({ id: 0, name: '' });
   const [isOpenDelete, setOpenDelete] = useState(false);
   const dispatch = useDispatch();
 
@@ -116,11 +116,11 @@ const ProductTable = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <StyleTableHeader>Product ID</StyleTableHeader>
-              <StyleTableHeader>Image</StyleTableHeader>
-              <StyleTableHeader>Product Name</StyleTableHeader>
-              <StyleTableHeader>Category</StyleTableHeader>
-              <StyleTableHeader>Price</StyleTableHeader>
+              <StyleTableHeader>ID</StyleTableHeader>
+              <StyleTableHeader>Ảnh</StyleTableHeader>
+              <StyleTableHeader>Tên sản phẩm</StyleTableHeader>
+              <StyleTableHeader>Phân loại</StyleTableHeader>
+              <StyleTableHeader>Giá</StyleTableHeader>
               <StyleTableHeader></StyleTableHeader>
             </TableRow>
           </TableHead>

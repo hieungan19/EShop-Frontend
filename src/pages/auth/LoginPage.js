@@ -8,7 +8,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { Container } from '@mui/material';
-import LoginImg from '../../assets/images/Login.jpg';
+import LoginImg from '../../assets/images/Login.png';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,11 +44,6 @@ const Login = () => {
         email: email,
         password: password,
       });
-      const cartItems = await fetchDataAxios({
-        url: `carts/${userId}`,
-        token: token,
-      });
-      dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
       const r = response.data;
       dispatch(
         SET_ACTIVE_USER({
@@ -57,8 +52,17 @@ const Login = () => {
           id: r.userInfo.id,
           roleName: r.userInfo.roleName,
           token: r.token,
+          avatarUrl: r.userInfo.avatarUrl,
+          address: r.userInfo.address ? r.userInfo.address.split(', ') : [],
+          phoneNumber: r.userInfo.phoneNumber,
         })
       );
+      const cartItems = await fetchDataAxios({
+        url: `carts/${r.userInfo.id}`,
+        token: r.token,
+      });
+      dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
+
       toast.success('Login Successful');
       setTimeout(function () {
         redirectUser();

@@ -1,45 +1,79 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import {
-  FILTER_BY_CATEGORY,
-  FILTER_BY_PRICE,
-} from '../../redux/slice/filterSlice';
+
 import { Button, Slider } from '@mui/material';
 import styles from './ProductFilter.module.scss';
 import CategoryButton from './CategoryButton';
+import { fetchDataAxios } from '../../api/customAxios';
 
-const ProductFilter = () => {
+const ProductFilter = ({ products, setFilterdProducts }) => {
   const [category, setCategory] = useState('All');
+  const [allCategories, setAllCategories] = useState([]);
+  const fetchCategories = async () => {
+    const response = await fetchDataAxios({ url: 'categories' });
+    setAllCategories(['All', ...response.categories.map((c) => c.name)]);
+  };
+  const [price, setPrice] = useState(0);
 
-  const [price, setPrice] = useState(3000);
-  const [products, setProducts] = useState([
-    { id: 1, category: 'Electronics', brand: 'Sony', price: 1200 },
-    { id: 2, category: 'Clothing', brand: 'Nike', price: 50 },
-    { id: 3, category: 'Electronics', brand: 'Samsung', price: 900 },
-    // Add more sample data as needed
-  ]);
   const minPrice = 0; // Replace with your minimum price logic
-  const maxPrice = 2000; // Replace with your maximum price logic
+  const [maxPrice, setMaxPrice] = useState(0); // Replace with your maximum price logic
+  const findMinMaxPrice = (products) => {
+    if (products.length === 0) {
+      return { max: null };
+    }
 
-  const dispatch = useDispatch();
+    return products.reduce(
+      (acc, currentProduct) => {
+        // So sánh giá cao nhất
+        if (currentProduct.maxPrice > acc.max) {
+          acc.max = currentProduct.maxPrice;
+        }
 
-  const allCategories = [
-    'All',
-    ...new Set(products.map((product) => product.category)),
-  ];
+        return acc;
+      },
+      { max: Number.MIN_VALUE }
+    );
+  };
 
   useEffect(() => {
-    dispatch(FILTER_BY_PRICE({ products, price }));
-  }, [dispatch, products, price]);
+    fetchCategories();
+    const { max } = findMinMaxPrice(products);
+    console.log(max);
+    setMaxPrice(max);
+    setPrice(max);
+  }, [products]);
 
   const filterProducts = (cat) => {
     setCategory(cat);
-    dispatch(FILTER_BY_CATEGORY({ products, category: cat }));
+    if (cat !== 'All')
+      setFilterdProducts(
+        products.filter(
+          (product) =>
+            product.category.name.toLowerCase().includes(cat.toLowerCase()) &&
+            product.maxPrice <= price
+        )
+      );
+    else {
+      setFilterdProducts(products);
+    }
   };
 
   const clearFilters = () => {
     setCategory('All');
     setPrice(maxPrice);
+  };
+
+  const handleChangePriceRange = (e) => {
+    setPrice(e.target.value);
+
+    if (category != 'All') {
+      const temp = products.filter((product) =>
+        product.category.name.toLowerCase().includes(category.toLowerCase())
+      );
+      setFilterdProducts(temp.filter((p) => p.maxPrice <= e.target.value));
+    } else {
+      setFilterdProducts(products.filter((p) => p.maxPrice <= e.target.value));
+    }
   };
 
   return (
@@ -57,20 +91,17 @@ const ProductFilter = () => {
       </div>
 
       <h4>Price</h4>
-      <p>{`0 - ${price.toLocaleString()}đ`}</p>
+      <p>{`0 - ${price}đ`}</p>
       <div className={styles.price}>
         <Slider
           sx={{ width: '80%' }}
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={handleChangePriceRange}
           min={minPrice}
           max={maxPrice}
         />
       </div>
       <br />
-      <Button variant='outlined' color='error' onClick={clearFilters}>
-        Clear Filter
-      </Button>
     </div>
   );
 };

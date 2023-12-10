@@ -16,13 +16,16 @@ import {
 } from '@mui/material';
 import React, { useState } from 'react';
 import { Colors } from '../../styles/theme';
+import { useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
+import { selectUserId } from '../../redux/slice/authSlice';
+import { postDataAxios } from '../../api/customAxios';
 
-const ReviewForm = () => {
+const ReviewForm = ({ item }) => {
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [isSnackbarOpen, setSnackbarOpen] = useState(false);
-  const image = 'https://placekitten.com/200/300';
-
+  const userId = useSelector(selectUserId);
   const handleRatingChange = (event, newValue) => {
     setRating(newValue);
   };
@@ -31,8 +34,22 @@ const ReviewForm = () => {
     setReviewText(event.target.value);
   };
 
-  const handleSubmit = () => {
-    // Handle submission logic here
+  const handleSubmit = async () => {
+    console.log(item);
+    try {
+      const data = {
+        userId: userId,
+        detail: reviewText,
+        star: rating,
+        productId: item.productId,
+      };
+      const response = await postDataAxios({ url: 'reviews', data });
+      console.log(response);
+      toast.success('Thêm đánh giá thành công');
+    } catch (error) {
+      toast.error('Thêm đánh giá thất bại.');
+    }
+
     setSnackbarOpen(true);
   };
 
@@ -44,15 +61,6 @@ const ReviewForm = () => {
     <Container
       sx={{ maxWidth: '300px', backgroundColor: Colors.white, mb: 2, pb: 2 }}
     >
-      <Grid container spacing={2} alignItems='center'>
-        <Grid item>
-          <Avatar />
-        </Grid>
-        <Grid item>
-          <Typography variant='subtitle1'>User Name</Typography>
-        </Grid>
-      </Grid>
-
       <Box mt={2}>
         <Grid container spacing={2} alignItems='center'>
           <Grid item>
@@ -60,13 +68,13 @@ const ReviewForm = () => {
               component='img'
               alt={'Product Name'}
               sx={{ height: '60px', width: '60px', objectFit: 'cover' }}
-              image={image}
+              image={item.productImageUrl}
             />
           </Grid>
           <Grid item>
-            <Typography variant='subtitle1'>Product Name</Typography>
+            <Typography variant='subtitle1'>{item.productName}</Typography>
             <Typography variant='body2' color='textSecondary'>
-              Option: Option Name
+              {item.name}
             </Typography>
           </Grid>
         </Grid>

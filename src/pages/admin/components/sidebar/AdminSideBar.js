@@ -20,6 +20,11 @@ import StoreIcon from '@mui/icons-material/Store';
 import { Colors } from '../../../../styles/theme';
 import GroupIcon from '@mui/icons-material/Group';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import {
+  selectAvatarUrl,
+  selectFullName,
+} from '../../../../redux/slice/authSlice';
 const drawerWidth = 220;
 const itemList = [
   'HOME',
@@ -31,6 +36,8 @@ const itemList = [
 ];
 const AdminSideBar = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const userFullname = useSelector(selectFullName);
+  const avatarUrl = useSelector(selectAvatarUrl);
   const navigate = useNavigate();
   const handleListItemClick = (index) => {
     setActiveIndex(index);
@@ -63,7 +70,16 @@ const AdminSideBar = () => {
     >
       <Toolbar />
       <Container sx={{ py: 4 }}>
-        <Avatar sx={{ mx: 'auto', p: 0, alignSelf: 'center' }} />
+        <Avatar
+          src={avatarUrl}
+          sx={{
+            mx: 'auto',
+            p: 0,
+            alignSelf: 'center',
+            width: '54px',
+            height: '54px',
+          }}
+        />
         <Typography
           sx={{
             textAlign: 'center',
@@ -72,7 +88,7 @@ const AdminSideBar = () => {
             fontSize: 18,
           }}
         >
-          User name
+          {userFullname}
         </Typography>
       </Container>
       <List sx={{ py: 0 }}>

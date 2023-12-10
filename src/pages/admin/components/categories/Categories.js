@@ -140,7 +140,7 @@ const Categories = () => {
           <TableHead>
             <TableRow>
               <TableStyleHeader>ID</TableStyleHeader>
-              <TableStyleHeader>Category Name</TableStyleHeader>
+              <TableStyleHeader>Phân loại</TableStyleHeader>
               <TableCell></TableCell>
             </TableRow>
           </TableHead>

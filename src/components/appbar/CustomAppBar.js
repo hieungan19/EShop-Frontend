@@ -78,7 +78,9 @@ const CustomAppBar = () => {
     if (setting === 'Log Out') {
       dispatch(REMOVE_ACTIVE_USER());
       navigate('/login');
-    }
+    } else if (setting === 'Account') {
+      navigate('/me');
+    } else navigate('/orders');
 
     setAnchorElUser(null);
   };

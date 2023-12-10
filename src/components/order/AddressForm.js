@@ -9,15 +9,28 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  STORE_CART_DISCOUNT,
+  STORE_ORDER_ADDRESS,
+  selectAddress,
+} from '../../redux/slice/cartSlice';
 
-const AddressForm = () => {
-  const [avatar, setAvatar] = useState('');
-  const [username, setUsername] = useState('');
-  const [selectedProvince, setSelectedProvince] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedWard, setSelectedWard] = useState('');
-  const [houseNumberStreet, setHouseNumberStreet] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+const AddressForm = ({ userAddress, setUserAddress }) => {
+  const dispatch = useDispatch();
+  console.log(userAddress);
+  const [selectedProvince, setSelectedProvince] = useState(
+    userAddress[3] ?? ''
+  );
+  const [selectedDistrict, setSelectedDistrict] = useState(
+    userAddress[2] ?? ''
+  );
+  const [selectedWard, setSelectedWard] = useState(userAddress[1] ?? '');
+
+  const [houseNumberStreet, setHouseNumberStreet] = useState(
+    userAddress[0] ?? ''
+  );
+
   const addressApiUrl = 'https://provinces.open-api.vn/api';
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
@@ -60,28 +73,58 @@ const AddressForm = () => {
 
   const handleProvinceChange = (e) => {
     setSelectedProvince(e.target.value);
+    const newAddress = e.target.value;
+
+    setUserAddress((prevAddresses) => {
+      // Tạo một bản sao mới của mảng userAddress và cập nhật phần tử thứ 4
+      const updatedAddresses = [...prevAddresses];
+      updatedAddresses[3] = newAddress.name;
+      return updatedAddresses;
+    });
+
     filterDistricts({ provinceId: e.target.value.code });
   };
 
   const handleDistrictChange = (e) => {
     setSelectedDistrict(e.target.value);
     console.log(e.target.value);
+    const newAddress = e.target.value;
+
+    setUserAddress((prevAddresses) => {
+      // Tạo một bản sao mới của mảng userAddress và cập nhật phần tử thứ 4
+      const updatedAddresses = [...prevAddresses];
+      updatedAddresses[2] = newAddress.name;
+      return updatedAddresses;
+    });
+
     filterWards({ districtId: e.target.value.code });
   };
 
-  const handleAvatarChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setAvatar(event.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleWardChange = (e) => {
+    setSelectedWard(e.target.value);
+    const newAddress = e.target.value;
+
+    setUserAddress((prevAddresses) => {
+      // Tạo một bản sao mới của mảng userAddress và cập nhật phần tử thứ 4
+      const updatedAddresses = [...prevAddresses];
+      updatedAddresses[1] = newAddress.name;
+      return updatedAddresses;
+    });
+  };
+  const handleAddressDetailChange = (e) => {
+    setHouseNumberStreet(e.target.value);
+    const newAddress = e.target.value;
+
+    setUserAddress((prevAddresses) => {
+      // Tạo một bản sao mới của mảng userAddress và cập nhật phần tử thứ 4
+      const updatedAddresses = [...prevAddresses];
+      updatedAddresses[0] = newAddress;
+      return updatedAddresses;
+    });
   };
 
   return (
-    <Box width={'350px'} style={{ textAlign: 'center' }}>
+    <Box style={{ textAlign: 'center' }}>
       <form>
         <Grid container spacing={2}>
           <Grid item xs={6}>
@@ -132,10 +175,10 @@ const AddressForm = () => {
                 id='ward'
                 label='ward'
                 value={selectedWard}
-                onChange={(e) => setSelectedWard(e.target.value)}
+                onChange={handleWardChange}
               >
                 {wards.map((ward, index) => (
-                  <MenuItem key={index} value={ward}>
+                  <MenuItem key={index} value={ward.name}>
                     {ward.name}
                   </MenuItem>
                 ))}
@@ -149,19 +192,10 @@ const AddressForm = () => {
               fullWidth
               margin='normal'
               value={houseNumberStreet}
-              onChange={(e) => setHouseNumberStreet(e.target.value)}
+              onChange={handleAddressDetailChange}
             />
           </Grid>
         </Grid>
-
-        <TextField
-          label='Phone Number'
-          fullWidth
-          margin='normal'
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/, ''))}
-          inputProps={{ maxLength: 10 }}
-        />
       </form>
     </Box>
   );

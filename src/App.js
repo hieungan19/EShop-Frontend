@@ -26,6 +26,11 @@ import ProductFilter from './components/product-filter/ProductFilter';
 import ProductSort from './components/product-filter/ProductSort';
 import CartPage from './pages/cart/CartPage';
 import CreateOrderPage from './pages/order/CreateOrderPage';
+import OrderHistoryPage from './pages/order/OrderHistoryPage';
+import OrderDetailPage from './pages/order/OrderDetailPage';
+import ReviewPage from './pages/review/ReviewPage';
+import AboutPage from './pages/about/AboutPage';
+
 function App() {
   const product = {
     id: 1,
@@ -80,6 +85,11 @@ function App() {
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='create-order' element={<CreateOrderPage />} />
+        <Route path='orders' element={<OrderHistoryPage />} />
+        <Route path='orders/:id' element={<OrderDetailPage />} />
+        <Route path='review/:orderId' element={<ReviewPage />} />
+        <Route path='me' element={<UserProfilePage />} />
+        <Route path='/about-us' element={<AboutPage />} />
         <Route
           path='/admin/*'
           element={

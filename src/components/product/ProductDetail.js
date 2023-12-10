@@ -18,6 +18,10 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectUserId, selectUserToken } from '../../redux/slice/authSlice';
 import { STORE_ITEMS_TO_CART } from '../../redux/slice/cartSlice';
+import Zoom from 'react-medium-image-zoom';
+import 'react-medium-image-zoom/dist/styles.css';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 const ProductDetail = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
@@ -28,6 +32,8 @@ const ProductDetail = () => {
   const userId = useSelector(selectUserId);
   const token = useSelector(selectUserToken);
   const dispatch = useDispatch();
+
+  const policyText = 'CHÍNH SÁCH ĐỔI TRẢ SẢN PHẨM KHI MUA HÀNG TẠI LÀ MỨT';
 
   const fetchProductById = async () => {
     try {
@@ -66,6 +72,18 @@ const ProductDetail = () => {
   const handleQuantityChange = (event) => {
     setQuantity(event.target.value);
   };
+  const getPrice = (option) => {
+    let temp = option.price;
+    if (product.currentCouponId !== null) {
+      if (product.currentCoupon.discountPercent) {
+        temp =
+          (option.price * (100 - product.currentCoupon.discountPercent)) / 100;
+      } else {
+        temp = option.price - product.currentCoupon.discountAmount;
+      }
+    }
+    return temp;
+  };
 
   const handleAddToCart = async () => {
     const data = {
@@ -86,7 +104,7 @@ const ProductDetail = () => {
       });
       dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
 
-      toast.success('Add option to cart sucessfully. ');
+      toast.success('Thêm vào giỏ hàng thành công. ');
     } catch (error) {
       toast.error(error.message);
     }
@@ -105,14 +123,15 @@ const ProductDetail = () => {
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              alignItems: 'center',
             }}
           >
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              style={{ width: '300px', height: '300px', objectFit: 'cover' }}
-            />
+            <Zoom>
+              <img
+                alt='That Wanaka Tree, New Zealand by Laura Smetsers'
+                src={product.imageUrl}
+                style={{ width: '300px', height: '300px', objectFit: 'cover' }}
+              />
+            </Zoom>
           </Grid>
 
           {/* Right Section - Product Details, Options, and Reviews */}
@@ -175,27 +194,24 @@ const ProductDetail = () => {
                   <Rating value={averageStar} readOnly />
                 </Box>
 
-                {/* Product Description, Category */}
-                <Typography variant='body1' mt={2}>
-                  {product.description}
-                </Typography>
-
                 {/* Options */}
                 <Box sx={{ my: 2, display: 'flex', gap: 1 }}>
                   {product.options
-                    ? product.options.map((option) => (
-                        <Button
-                          key={option.id}
-                          variant={
-                            selectedOption === option.id
-                              ? 'contained'
-                              : 'outlined'
-                          }
-                          onClick={() => handleOptionChange(option.id)}
-                        >
-                          {option.name} - ${option.price.toFixed(2)}
-                        </Button>
-                      ))
+                    ? product.options.map((option) => {
+                        return (
+                          <Button
+                            key={option.id}
+                            variant={
+                              selectedOption === option.id
+                                ? 'contained'
+                                : 'outlined'
+                            }
+                            onClick={() => handleOptionChange(option.id)}
+                          >
+                            {option.name}
+                          </Button>
+                        );
+                      })
                     : null}
                 </Box>
                 {/* Quantity */}
@@ -209,21 +225,24 @@ const ProductDetail = () => {
                 {/* Price of the selected option and total price */}
                 {selectedOption && (
                   <Typography
-                    variant='body2'
+                    variant='body1'
                     color='textSecondary'
                     sx={{ mt: 1 }}
                   >
-                    Option Price: $
-                    {product.options
-                      ? product.options
-                          .find((o) => o.id === selectedOption)
-                          .price.toFixed(2)
-                      : null}{' '}
-                    | Total Price: $
+                    <b>
+                      Giá:
+                      {product.options
+                        ? getPrice(
+                            product.options.find((o) => o.id === selectedOption)
+                          ).toFixed(2)
+                        : null}{' '}
+                    </b>
+                    | Tổng cộng:
                     {product.options
                       ? (
-                          product.options.find((o) => o.id === selectedOption)
-                            .price * quantity
+                          getPrice(
+                            product.options.find((o) => o.id === selectedOption)
+                          ) * quantity
                         ).toFixed(2)
                       : null}
                   </Typography>
@@ -237,13 +256,41 @@ const ProductDetail = () => {
                   disabled={!selectedOption}
                   sx={{ mt: 2 }}
                 >
-                  Add to Cart
+                  Thêm vào giỏ hàng
                 </Button>
               </Box>
             </Box>
           </Grid>
         </Grid>
+
+        {/* Product Description, Category */}
+        <Box pl={2}>
+          <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold' }}>
+            Mô tả sản phẩm
+          </Typography>
+          <Typography variant='body1' mt={2}>
+            {product.description?.split('.').map((sentence, index) => {
+              const trimmedSentence = sentence.trim();
+              return (
+                <React.Fragment key={index}>
+                  {trimmedSentence.includes(policyText) ? (
+                    <React.Fragment>
+                      <strong>{trimmedSentence}</strong>
+                      <br />
+                    </React.Fragment>
+                  ) : (
+                    <React.Fragment>
+                      {trimmedSentence}
+                      <br />
+                    </React.Fragment>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </Typography>
+        </Box>
       </Container>
+
       {/* Reviews Section */}
       <Grid item xs={12} md={12}>
         <Container sx={{ width: '100%', backgroundColor: Colors.white }}>

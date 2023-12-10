@@ -18,12 +18,13 @@ const Admin = () => {
       </Grid>
       <Grid item flexGrow={1}>
         <Routes>
-          <Route path='home' element={<AdminHome />}></Route>
+          <Route path='' element={<AdminHome />}></Route>
           <Route path='products' element={<Products />}></Route>
           <Route path='categories' element={<Categories />}></Route>
           <Route path='coupons' element={<Coupons />}></Route>
           <Route path='orders' element={<Orders />}></Route>
           <Route path='customers' element={<Customers />}></Route>
+          
         </Routes>
       </Grid>
     </Grid>

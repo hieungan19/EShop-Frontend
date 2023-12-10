@@ -1,0 +1,28 @@
+/* styles.module.scss */
+
+.slideInFromRight {
+  transform: translateX(100%);
+  animation: slideInFromRightAnimation 5s ease-in-out forwards;
+}
+
+.slideInFromLeft1 {
+  transform: translateX(-100%);
+  animation: slideInFromLeftAnimation 3s ease-in-out forwards;
+}
+
+.slideInFromLeft2 {
+  transform: translateX(-100%);
+  animation: slideInFromLeftAnimation 7s ease-in-out forwards;
+}
+
+@keyframes slideInFromRightAnimation {
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromLeftAnimation {
+  to {
+    transform: translateX(0);
+  }
+}

@@ -5,7 +5,7 @@ import Pagination from '../pagination/Pagination';
 
 const ProductList = ({ products }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 8;
   const pageNumbers = Math.ceil(products.length / itemsPerPage);
   const indexOfLastProduct = currentPage * itemsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - itemsPerPage;
@@ -13,6 +13,7 @@ const ProductList = ({ products }) => {
     indexOfFirstProduct,
     indexOfLastProduct
   );
+
   return (
     <Grid container spacing={1}>
       {currentProducts.map((product) => (

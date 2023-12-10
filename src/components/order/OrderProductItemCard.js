@@ -2,17 +2,7 @@ import { Box, Typography } from '@mui/material';
 import React from 'react';
 import { Colors } from '../../styles/theme';
 
-const OrderedProductItemCard = () => {
-  const fakeProduct = {
-    image: 'https://placekitten.com/200/300',
-    name: 'Sample Product',
-    option: { name: 'Sample Option', price: 10 },
-    price: 10000,
-    quantity: 3,
-  };
-  const { image, name, option, price, quantity } = fakeProduct;
-  const total = price * quantity;
-
+const OrderedProductItemCard = ({ item }) => {
   return (
     <Box
       sx={{
@@ -29,8 +19,8 @@ const OrderedProductItemCard = () => {
           alignItems='center'
         >
           <img
-            src={image}
-            alt={name}
+            src={item.productImageUrl}
+            alt={item.productName}
             style={{
               width: 60,
               height: 60,
@@ -40,18 +30,29 @@ const OrderedProductItemCard = () => {
         </Box>
 
         <Box mr={4} flexGrow={1}>
-          <Typography variant='subtitle1'>{name}</Typography>
+          <Typography variant='subtitle1'>{item.productName}</Typography>
           <Typography variant='body2' color='textSecondary'>
-            <b>Option:</b> {option.name} - {option.price.toLocaleString()}
+            <b>Option:</b> {item.name} -{' '}
+            {item.currentPrice
+              ? item.currentPrice.toLocaleString()
+              : (item.unitPrice - item.discountAmount).toLocaleString()}
           </Typography>
 
           <Typography variant='body2' fontWeight={'bold'} color='secondary'>
-            x{quantity}
+            x{item.quantity}
           </Typography>
 
           <Box display='flex' justifyContent='flex-end' alignItems='center'>
             <Typography variant='body2' color='secondary'>
-              <b>{total.toLocaleString()}</b> đ
+              <b>
+                {item.currentPrice
+                  ? (item.quantity * item.currentPrice).toLocaleString()
+                  : (
+                      item.quantity *
+                      (item.unitPrice - item.discountAmount)
+                    ).toLocaleString()}
+              </b>{' '}
+              đ
             </Typography>
           </Box>
         </Box>

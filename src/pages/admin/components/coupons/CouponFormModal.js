@@ -9,28 +9,31 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import InputLabel from '@mui/material/InputLabel';
 import { StyledTextField } from '../products/ProductFormDialog';
-
-const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
-  const [formData, setFormData] = useState(
-    initialData || {
-      id: null,
-      name: '',
-      description: '',
-      applyCouponType: '0',
-      discountPercent: 0,
-      discountAmount: null,
-      maxDiscountAmount: null,
-      minBillAmount: null,
-      startDate: '',
-      endDate: '',
-    }
-  );
+import { postDataAxios } from '../../../../api/customAxios';
+import { toast } from 'react-toastify';
+import { fetchALlCoupons } from './Coupons';
+import { STORE_COUPONS } from '../../../../redux/slice/couponSlice';
+import { useDispatch } from 'react-redux';
+const couponInitData = {
+  id: null,
+  name: '',
+  desciption: '',
+  applyCouponType: 0,
+  discountPercent: null,
+  discountAmount: null,
+  maxDiscountAmount: null,
+  minBillAmount: null,
+  startDate: '',
+  endDate: '',
+};
+const CouponForm = ({ open, onClose, setCoupons }) => {
+  const [formData, setFormData] = useState(couponInitData);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Chỉ cho phép điền một trong hai trường discountAmount hoặc discountPercent
     if (name === 'discountAmount') {
       setFormData({
         ...formData,
@@ -50,19 +53,30 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
       });
     }
   };
+  const dispatch = useDispatch();
 
-  const handleSubmit = () => {
-    // Gọi hàm onSubmit để xử lý dữ liệu khi người dùng submit
-    onSubmit(formData);
-    onClose(); // Đóng dialog sau khi submit
+  const handleSubmit = async () => {
+    try {
+      console.log(formData);
+      const response = await postDataAxios({ url: 'coupons', data: formData });
+      const responseCoupons = await fetchALlCoupons();
+      if (responseCoupons) {
+        setCoupons(responseCoupons.coupons);
+        dispatch(STORE_COUPONS({ coupons: response.coupons }));
+      }
+      setFormData(couponInitData);
+      onClose();
+    } catch (error) {
+      toast.error('Thất bại');
+    }
   };
 
   const handleClose = () => {
-    setFormData(initialData || {}); // Reset form data khi đóng dialog
+    setFormData(couponInitData);
     onClose();
   };
 
-  const showAdditionalFields = formData.applyCouponType === '0';
+  const showAdditionalFields = formData.applyCouponType === 0;
 
   return (
     <Dialog open={open} onClose={handleClose}>
@@ -71,46 +85,53 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
         <form onSubmit={handleSubmit}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
+              <InputLabel htmlFor='name'>Tên mã giảm giá</InputLabel>
               <TextField
                 fullWidth
-                label='Name'
+                id='name'
                 name='name'
                 value={formData.name}
                 onChange={handleChange}
               />
             </Grid>
             <Grid item xs={12}>
+              <InputLabel htmlFor='description'>Mô tả</InputLabel>
               <StyledTextField
-                id='outlined-textarea'
-                label='Description'
+                id='desciption'
                 placeholder='Product Description'
-                name='description'
+                name='desciption'
                 multiline
                 minRows={3}
+                fullWidth
                 variant='outlined'
                 onChange={handleChange}
                 sx={{ width: '100%' }}
               />
             </Grid>
             <Grid item xs={12}>
+              <InputLabel htmlFor='applyCouponType'>Loại giảm giá</InputLabel>
               <RadioGroup
                 name='applyCouponType'
                 value={formData.applyCouponType}
                 onChange={handleChange}
               >
-                <FormControlLabel value='0' control={<Radio />} label='Bill' />
                 <FormControlLabel
-                  value='1'
+                  value={0}
                   control={<Radio />}
-                  label='Product'
+                  label='Hóa đơn'
+                />
+                <FormControlLabel
+                  value={1}
+                  control={<Radio />}
+                  label='Sản phẩm'
                 />
               </RadioGroup>
             </Grid>
-            {/* Các trường khác ... */}
             <Grid item xs={12}>
+              <InputLabel htmlFor='discountAmount'>Số tiền giảm</InputLabel>
               <TextField
                 fullWidth
-                label='Discount Amount'
+                id='discountAmount'
                 name='discountAmount'
                 type='number'
                 value={formData.discountAmount || ''}
@@ -118,9 +139,12 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
               />
             </Grid>
             <Grid item xs={12}>
+              <InputLabel htmlFor='discountPercent'>
+                Phần trăm giảm giá
+              </InputLabel>
               <TextField
                 fullWidth
-                label='Discount Percent'
+                id='discountPercent'
                 name='discountPercent'
                 type='number'
                 value={formData.discountPercent || ''}
@@ -130,9 +154,12 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
             {showAdditionalFields && (
               <>
                 <Grid item xs={12}>
+                  <InputLabel htmlFor='maxDiscountAmount'>
+                    Max Discount Amount
+                  </InputLabel>
                   <TextField
                     fullWidth
-                    label='Max Discount Amount'
+                    id='maxDiscountAmount'
                     name='maxDiscountAmount'
                     type='number'
                     value={formData.maxDiscountAmount || ''}
@@ -140,9 +167,12 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
                   />
                 </Grid>
                 <Grid item xs={12}>
+                  <InputLabel htmlFor='minBillAmount'>
+                    Hóa đơn tối thiểu
+                  </InputLabel>
                   <TextField
                     fullWidth
-                    label='Min Bill Amount'
+                    id='minBillAmount'
                     name='minBillAmount'
                     type='number'
                     value={formData.minBillAmount || ''}
@@ -152,9 +182,10 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
               </>
             )}
             <Grid item xs={12}>
+              <InputLabel htmlFor='startDate'>Bắt đầu</InputLabel>
               <TextField
                 fullWidth
-                label='Start Date'
+                id='startDate'
                 name='startDate'
                 type='datetime-local'
                 value={formData.startDate}
@@ -162,9 +193,10 @@ const CouponForm = ({ open, onClose, onSubmit, initialData }) => {
               />
             </Grid>
             <Grid item xs={12}>
+              <InputLabel htmlFor='endDate'>Kết thúc</InputLabel>
               <TextField
                 fullWidth
-                label='End Date'
+                id='endDate'
                 name='endDate'
                 type='datetime-local'
                 value={formData.endDate}

@@ -9,17 +9,30 @@ import { STORE_PRODUCTS, selectProducts } from '../../redux/slice/productSlice';
 import { fetchProducts } from '../admin/components/products/Products';
 const Products = () => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilterdProducts] = useState([]);
+
   const dispatch = useDispatch();
   const fetchProductsAndDispatch = async () => {
     const response = await fetchProducts();
+
     if (response) {
       setProducts(response.products);
+      setFilterdProducts(response.products);
       dispatch(STORE_PRODUCTS({ products: response.products }));
     }
   };
   useEffect(() => {
     fetchProductsAndDispatch();
   }, []);
+  const [searchTerm, setSearchTerm] = useState('');
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value);
+    const searchProducts = products.filter((product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilterdProducts(searchProducts);
+  };
+
   return (
     <div>
       <Container>
@@ -32,12 +45,12 @@ const Products = () => {
           alignItems='center'
         >
           <TextField
-            label='Search Categories'
+            label='Tìm kiếm sản phẩm'
             variant='outlined'
             fullWidth
             margin='normal'
-            // value={searchTerm}
-            // onChange={handleSearchChange}
+            value={searchTerm}
+            onChange={handleSearchChange}
             sx={{ m: 0, p: 0 }}
             InputProps={{
               endAdornment: (
@@ -47,16 +60,18 @@ const Products = () => {
               ),
             }}
           />
-          <ProductSort />
         </Box>
 
         {/* Phần FilterProduct và danh sách sản phẩm */}
         <Grid container spacing={2}>
           <Grid item xs={3}>
-            <ProductFilter />
+            <ProductFilter
+              products={products}
+              setFilterdProducts={setFilterdProducts}
+            />
           </Grid>
           <Grid item xs={9}>
-            <ProductList products={products} />
+            <ProductList products={filteredProducts} />
           </Grid>
         </Grid>
       </Container>

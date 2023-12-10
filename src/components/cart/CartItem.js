@@ -47,6 +47,7 @@ const CartItemRow = ({ item, onSelect }) => {
         userId: userId,
         optionId: item.id,
       };
+      console.log(token);
       const response = await deleteDataAxios({
         url: 'carts',
         data: data,
@@ -66,6 +67,7 @@ const CartItemRow = ({ item, onSelect }) => {
 
   const handleQuantityChange = (event) => {
     setQuantity(event.target.value);
+
     changeOptionQuantity(event.target.value);
   };
 
@@ -78,7 +80,16 @@ const CartItemRow = ({ item, onSelect }) => {
         optionId: item.id,
         quantity: quantity,
       };
-      const response = putDataAxios({ url: 'carts', data: data, token: token });
+      const response = await putDataAxios({
+        url: 'carts',
+        data: data,
+        token: token,
+      });
+      const cartItems = await fetchDataAxios({
+        url: `carts/${userId}`,
+        token: token,
+      });
+      dispatch(STORE_ITEMS_TO_CART({ cartItems: cartItems.options }));
     } catch (error) {
       toast.error('Failed to change option quantity.');
     }

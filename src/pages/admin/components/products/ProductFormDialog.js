@@ -51,19 +51,21 @@ const initialState = {
   imageURL: '',
   categoryId: '',
   description: '',
+  currentCouponId: '',
   options: [{ name: '', price: 0, quantity: 0 }],
 };
 
 const ProductFormDialog = ({
-  productId = '',
+  productId = 0,
   open,
   handleCloseDialog,
   fetchProductsAndDispatch,
 }) => {
   const [product, setProduct] = useState({ ...initialState });
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [coupons, setCoupons] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState();
   const [categories, setCategories] = useState(useSelector(selectCategories));
   const [previewImage, setPreviewImage] = useState('');
   const dispatch = useDispatch();
@@ -76,12 +78,22 @@ const ProductFormDialog = ({
     }
   };
 
+  const fetchCoupons = async () => {
+    try {
+      const response = await fetchDataAxios({ url: 'coupons/product' });
+      setCoupons(response.coupons);
+    } catch (error) {
+      toast.success('Fail.');
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
+      fetchCoupons();
       if (categories.length === 0) {
         await fetchCategoriesAndDispatch();
       }
-      if (productId !== '') {
+      if (productId !== 0) {
         await fetchProduct();
       }
     };
@@ -117,7 +129,10 @@ const ProductFormDialog = ({
   const addOption = () => {
     setProduct({
       ...product,
-      options: [...product.options, { name: '', price: 0, quantity: 0 }],
+      options: [
+        ...product.options,
+        { productId: productId, name: '', price: 0, quantity: 0 },
+      ],
     });
   };
 
@@ -143,6 +158,7 @@ const ProductFormDialog = ({
   };
 
   const handleImageUpload = async (file) => {
+    if (!file) return null;
     const storageRef = ref(storage, `eshop/${Date.now()}${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
@@ -179,7 +195,8 @@ const ProductFormDialog = ({
     setIsLoading(true);
 
     try {
-      const downloadURL = await handleImageUpload(image);
+      let downloadURL = await handleImageUpload(image);
+      if (downloadURL == null) downloadURL = previewImage;
       const response = await (productId === ''
         ? postDataAxios({
             url: 'products',
@@ -200,9 +217,12 @@ const ProductFormDialog = ({
         `${productId === '' ? 'Created' : 'Updated'} product successfully!`
       );
       await fetchProductsAndDispatch();
+      setProduct({ ...initialState });
       handleCloseDialog();
     } catch (error) {
+      console.log(error);
       setIsLoading(false);
+
       toast.error(error.message);
     }
   };
@@ -259,6 +279,27 @@ const ProductFormDialog = ({
                     {categories.map((cat) => (
                       <MenuItem key={cat.id} value={cat.id}>
                         {cat.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Chọn mã giảm giá</InputLabel>
+                  <Select
+                    required
+                    name='currentCouponId'
+                    value={product.currentCouponId}
+                    onChange={handleInputChange}
+                  >
+                    <MenuItem value='' disabled>
+                      -- Choose product category --
+                    </MenuItem>
+                    {coupons.map((c) => (
+                      <MenuItem key={c.id} value={c.id}>
+                        {c.name}
                       </MenuItem>
                     ))}
                   </Select>

@@ -56,7 +56,7 @@ const putDataAxios = async ({ url, data, token = null }) => {
   }
 };
 
-const deleteDataAxios = async ({ url, token = null, data = null }) => {
+const deleteDataAxios = async ({ url, data = null, token = null }) => {
   try {
     const headers =
       token != null
@@ -66,7 +66,7 @@ const deleteDataAxios = async ({ url, token = null, data = null }) => {
           }
         : { 'Content-Type': 'application/json' };
 
-    const response = await axios.delete(`${API_URL}/${url}`, data, { headers });
+    const response = await axios.delete(`${API_URL}/${url}`, { data, headers });
     return response;
   } catch (error) {
     console.error('Error deleting data:', error);

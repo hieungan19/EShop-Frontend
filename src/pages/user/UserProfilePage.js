@@ -1,85 +1,125 @@
-import React, { useEffect, useState } from 'react';
 import {
-  TextField,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Container,
   Avatar,
-  Grid,
-  Typography,
   Box,
-  Tooltip,
+  Button,
+  Container,
   IconButton,
+  TextField,
+  Tooltip,
+  Typography,
 } from '@mui/material';
-import { Colors } from '../../styles/theme';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+
 import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import AddressForm from '../../components/order/AddressForm';
+import { storage } from '../../firebase/config';
+import {
+  SET_ACTIVE_USER,
+  SET_USER_DEFAULT_ADDRESS,
+  selectAvatarUrl,
+  selectDefaultAddress,
+  selectDefaultPhoneNumber,
+  selectFullName,
+  selectUserId,
+  selectUserInfo,
+  selectUserToken,
+} from '../../redux/slice/authSlice';
+import { Colors } from '../../styles/theme';
+import { putDataAxios } from '../../api/customAxios';
 
 const UserProfile = () => {
-  const [avatar, setAvatar] = useState('');
-  const [username, setUsername] = useState('');
-  const [selectedProvince, setSelectedProvince] = useState('');
-  const [selectedDistrict, setSelectedDistrict] = useState('');
-  const [selectedWard, setSelectedWard] = useState('');
-  const [houseNumberStreet, setHouseNumberStreet] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const addressApiUrl = 'https://provinces.open-api.vn/api';
-  const [districts, setDistricts] = useState([]);
-  const [wards, setWards] = useState([]);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const [address, setAddress] = useState({
-    allProvinces: [],
-    allDistricts: [],
-    allWards: [],
-  });
+  const [avatar, setAvatar] = useState(useSelector(selectAvatarUrl) ?? '');
+  const [userFullname, setUserFullname] = useState(
+    useSelector(selectFullName) ?? ''
+  );
+  const [userPhoneNumber, setUserPhoneNumber] = useState(
+    useSelector(selectDefaultPhoneNumber) ?? ''
+  );
+  const [userAddress, setUserAddress] = useState(
+    useSelector(selectDefaultAddress) ?? []
+  );
+  const token = useSelector(selectUserToken);
+  const userId = useSelector(selectUserId);
+  const [imageUrl, setImageUrl] = useState(useSelector(selectAvatarUrl) ?? '');
+  const user = useSelector(selectUserInfo);
 
-  const filterDistricts = ({ provinceId }) => {
-    const newDistricts = address.allDistricts.filter(
-      (d) => d.province_code === provinceId
-    );
-    setDistricts(newDistricts);
-  };
-  const filterWards = ({ districtId }) => {
-    const newWards = address.allWards.filter(
-      (w) => w.district_code === districtId
-    );
-    setWards(newWards);
-  };
-  const fetchAllAddress = async () => {
-    const resProvince = await axios.get(`${addressApiUrl}/p`);
-    const resDistrict = await axios.get(`${addressApiUrl}/d`);
-    const resWard = await axios.get(`${addressApiUrl}/w`);
-    setAddress({
-      allProvinces: resProvince.data,
-      allDistricts: resDistrict.data,
-      allWards: resWard.data,
+  const [imageFile, setImageFile] = useState();
+
+  useEffect(() => {}, []);
+
+  const handleImageUpload = async (file) => {
+    const storageRef = ref(storage, `avatar/${Date.now()}${file.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    return new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        },
+        (error) => {
+          console.log(error);
+          toast.error(error.message);
+          reject(error);
+        },
+        async () => {
+          try {
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log(downloadURL);
+            setImageUrl(downloadURL);
+            resolve(downloadURL);
+          } catch (error) {
+            console.log(error);
+            toast.error(error.message);
+            reject(error);
+          }
+        }
+      );
     });
   };
-  useEffect(() => {
-    try {
-      fetchAllAddress();
-    } catch (err) {
-      console.log('Fetch failed');
-    }
-  }, []);
-  const handleUpdateProfile = () => {};
-
-  const handleProvinceChange = (e) => {
-    setSelectedProvince(e.target.value);
-    filterDistricts({ provinceId: e.target.value.code });
+  const updateImageUrl = async () => {
+    if (imageFile) await handleImageUpload(imageFile);
   };
+  const handleUpdateProfile = async () => {
+    const stringDefaultAddress = userAddress.join(', ');
 
-  const handleDistrictChange = (e) => {
-    setSelectedDistrict(e.target.value);
-    console.log(e.target.value);
-    filterWards({ districtId: e.target.value.code });
+    try {
+      // Tải ảnh lên Firebase Storage
+      await updateImageUrl();
+      const data = {
+        fullName: userFullname,
+        phoneNumber: userPhoneNumber,
+        address: stringDefaultAddress,
+        avatarUrl: imageUrl,
+      };
+
+      const response = await putDataAxios({
+        url: `users/${userId}`,
+        data,
+        token: token,
+      });
+      dispatch(SET_USER_DEFAULT_ADDRESS({ address: userAddress }));
+      dispatch(
+        SET_ACTIVE_USER({ ...user, ...data, address: userAddress, avatar })
+      );
+      toast.success('Cập nhật thông tin thành công');
+    } catch (error) {
+      toast.error('Cập nhật thông tin thất bại');
+      console.log(error);
+    }
   };
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
+    setImageFile(file);
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -150,15 +190,15 @@ const UserProfile = () => {
         </Box>
       </Box>
       <Typography variant='h6' color='textSecondary' fontWeigh={600}>
-        User name
+        {userFullname}
       </Typography>
       <form>
         <TextField
           label='Full name'
           fullWidth
           margin='normal'
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          value={userFullname}
+          onChange={(e) => setUserFullname(e.target.value)}
         />
         <Typography
           variant='subtitle1'
@@ -168,84 +208,18 @@ const UserProfile = () => {
         >
           *Set default address and phone number
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
-              <InputLabel id='province-label'>Province</InputLabel>
-              <Select
-                labelId='province-label'
-                id='province'
-                label='Province'
-                value={selectedProvince}
-                onChange={handleProvinceChange}
-              >
-                {address.allProvinces.map((province, index) => (
-                  <MenuItem key={index} value={province}>
-                    {province.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={6}>
-            <FormControl fullWidth margin='normal'>
-              <InputLabel id='district-label'>District</InputLabel>
-              <Select
-                labelId='district-label'
-                id='district'
-                label='district'
-                value={selectedDistrict}
-                onChange={handleDistrictChange}
-              >
-                {districts.map((district, index) => (
-                  <MenuItem key={index} value={district}>
-                    {district.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={2}>
-          <Grid item xs={6}>
-            <FormControl fullWidth sx={{ my: 2 }}>
-              <InputLabel id='ward-label'>Ward</InputLabel>
-              <Select
-                labelId='ward-label'
-                id='ward'
-                label='ward'
-                value={selectedWard}
-                onChange={(e) => setSelectedWard(e.target.value)}
-              >
-                {wards.map((ward, index) => (
-                  <MenuItem key={index} value={ward}>
-                    {ward.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={6}>
-            <TextField
-              label='House Number & Street'
-              fullWidth
-              margin='normal'
-              value={houseNumberStreet}
-              onChange={(e) => setHouseNumberStreet(e.target.value)}
-            />
-          </Grid>
-        </Grid>
-
+        <Typography>{userAddress.join(', ')}</Typography>
         <TextField
           label='Phone Number'
           fullWidth
           margin='normal'
-          value={phoneNumber}
-          onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/, ''))}
+          value={userPhoneNumber}
+          onChange={(e) => setUserPhoneNumber(e.target.value.replace(/\D/, ''))}
           inputProps={{ maxLength: 10 }}
+        />
+        <AddressForm
+          userAddress={userAddress}
+          setUserAddress={setUserAddress}
         />
 
         <Button

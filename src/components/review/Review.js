@@ -1,12 +1,13 @@
 import { Avatar, Box, Rating, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import React from 'react';
+import { formatDateTime } from '../../utils/FormatDateTime';
 
 const Review = ({ review }) => {
   return (
     <Box
       key={review.id}
-      sx={{ mb: 2, display: 'flex', alignItems: 'flex-start' }}
+      sx={{ mb: 1, pb: 1, display: 'flex', alignItems: 'flex-start' }}
     >
       <Avatar
         src={review.avatar}
@@ -15,8 +16,7 @@ const Review = ({ review }) => {
       />
       <Box>
         <Typography variant='body2' color='textSecondary' sx={{ mb: 1, mt: 1 }}>
-          {review.userName} -{' '}
-          {/* {format(review.createdDate, 'MMMM dd, yyyy HH:mm')} */}
+          <b>{review.userName}</b> - {formatDateTime(review.createdDate)}
         </Typography>
         <Rating value={review.star} readOnly />
         <Typography variant='body2' color='textSecondary' sx={{ mt: 1 }}>

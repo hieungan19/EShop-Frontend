@@ -20,16 +20,17 @@ import {
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchDataAxios } from '../../api/customAxios';
 import CartItemRow from '../../components/cart/CartItem';
 import StyleTableHeader from '../../components/style-component/StyleTableHeader';
 import {
   REMOVE_SELECTED_ITEM,
   SELECT_ITEM,
+  STORE_CART_DISCOUNT,
   selectCartItems,
 } from '../../redux/slice/cartSlice';
 import { Colors } from '../../styles/theme';
-import { useNavigate } from 'react-router-dom';
 const CartPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -60,10 +61,18 @@ const CartPage = () => {
   const handleSelectItem = ({ item, isChecked, quantity }) => {
     console.log(item, isChecked, quantity);
     if (isChecked === true) {
-      dispatch(SELECT_ITEM({ item: { ...item, quantity: quantity } }));
+      dispatch(
+        SELECT_ITEM({
+          item: { ...item, quantity: quantity },
+        })
+      );
       setTotalBill((preValue) => preValue + item.currentPrice * quantity);
     } else {
-      dispatch(REMOVE_SELECTED_ITEM({ item: item }));
+      dispatch(
+        REMOVE_SELECTED_ITEM({
+          item: item,
+        })
+      );
       setTotalBill((preValue) => preValue - item.currentPrice * quantity);
     }
   };
@@ -81,6 +90,7 @@ const CartPage = () => {
       discount = Math.min(discount, coupon.maxDiscountAmount);
     }
     setRealTotalBill(totalBill - discount);
+    dispatch(STORE_CART_DISCOUNT({ couponId: coupon.id }));
   };
 
   const handleSelectCoupon = (event) => {
@@ -105,7 +115,7 @@ const CartPage = () => {
           YOUR CART{' '}
         </Typography>
         <TextField
-          label='Search Categories'
+          label='Search Products'
           variant='outlined'
           fullWidth
           margin='normal'
@@ -129,12 +139,12 @@ const CartPage = () => {
                 <StyleTableHeader>
                   <Checkbox disabled={true}></Checkbox>
                 </StyleTableHeader>
-                <StyleTableHeader>Image</StyleTableHeader>
-                <StyleTableHeader>Product Name</StyleTableHeader>
-                <StyleTableHeader>Option Name</StyleTableHeader>
-                <StyleTableHeader>Quantity</StyleTableHeader>
-                <StyleTableHeader>Price</StyleTableHeader>
-                <StyleTableHeader>Action</StyleTableHeader>
+                <StyleTableHeader>Ảnh</StyleTableHeader>
+                <StyleTableHeader>Tên sản phẩm</StyleTableHeader>
+                <StyleTableHeader>Lựa chọn</StyleTableHeader>
+                <StyleTableHeader>Số lượng</StyleTableHeader>
+                <StyleTableHeader>Giá</StyleTableHeader>
+                <StyleTableHeader></StyleTableHeader>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -204,7 +214,9 @@ const CartPage = () => {
           <Box display={'flex'} justifyContent={'flex-end'} mr={4}>
             <Button
               onClick={() => {
-                navigate('/create-order');
+                navigate('/create-order', {
+                  state: { total: totalBill, realTotal: realTotalBill },
+                });
               }}
               variant='contained'
               sx={{

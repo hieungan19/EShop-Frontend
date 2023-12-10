@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
-import SignUpImg from '../../assets/images/SignUp.jpg';
+import SignUpImg from '../../assets/images/SignUp.png';
 import { Container } from '@mui/material';
 import axios from 'axios';
 import { toast } from 'react-toastify';

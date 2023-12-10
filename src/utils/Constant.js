@@ -1,1 +1,1 @@
-export const OrderStatus = ['Pending', 'Shipping', 'Finished', 'Cancel'];
+export const OrderStatus = ['Chờ xác nhận', 'Đang giao hàng', 'Đã giao', 'Hủy'];

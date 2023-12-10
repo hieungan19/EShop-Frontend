@@ -14,7 +14,7 @@ const SearchAddButton = ({ searchTerm, handleSearchChange, onClickAddBtn }) => {
       }}
     >
       <TextField
-        label='Search Categories'
+        label='Search '
         variant='outlined'
         fullWidth
         margin='normal'

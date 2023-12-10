@@ -18,7 +18,7 @@ const ProductCard = ({ product }) => {
     navigate(`/products/${product.id}`);
   };
   return (
-    <Card sx={{ maxWidth: 200, height: 260, mb: 2 }} onClick={handleCardClick}>
+    <Card sx={{ maxWidth: 200, height: 280, mb: 2 }} onClick={handleCardClick}>
       <Box sx={{ position: 'relative' }}>
         <CardMedia
           component='img'

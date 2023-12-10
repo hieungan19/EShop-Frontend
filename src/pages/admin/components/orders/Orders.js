@@ -26,16 +26,22 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import Pagination from '../../../../components/pagination/Pagination';
 import { OrderStatus } from '../../../../utils/Constant';
+import OrderStatusChangeDialog from './OrderChangeStatusDialog';
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const token = useSelector(selectUserToken);
   const [orders, setOrders] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState(0);
   const itemsPerPage = 10;
 
   const dispatch = useDispatch();
 
+  const onCloseDialog = () => {
+    setOpenDialog(false);
+  };
   const fetchOrders = async () => {
     console.log('Fetch orders');
     try {
@@ -61,13 +67,16 @@ const Orders = () => {
 
   const filteredOrders = orders
     ? orders.filter((o) =>
-        o.userName.toLowerCase().includes(searchTerm.toLowerCase())
+        o.receiverName.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : [];
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1);
+  };
+  const handleOpenDialog = (e) => {
+    setOpenDialog(true);
   };
 
   const indexOfLastProduct = currentPage * itemsPerPage;
@@ -114,10 +123,16 @@ const Orders = () => {
           </TableHead>
           <TableBody>
             {currentOrders.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow
+                key={order.id}
+                onClick={() => {
+                  setCurrentOrder(order);
+                  handleOpenDialog();
+                }}
+              >
                 <TableCell>{order.id}</TableCell>
-                <TableCell>{order.userName}</TableCell>
-                <TableCell>{order.totalPrice}</TableCell>
+                <TableCell>{order.receiverName}</TableCell>
+                <TableCell>{order.totalPrice - order.discountAmount}</TableCell>
                 <TableCell>
                   {order.isPayed === true ? (
                     <CheckCircleIcon color='success' />
@@ -136,6 +151,12 @@ const Orders = () => {
           onPageChange={setCurrentPage}
         />
       </TableContainer>
+      <OrderStatusChangeDialog
+        open={openDialog}
+        onClose={onCloseDialog}
+        order={currentOrder}
+        fetchOrders={fetchDataAndDispatch}
+      />
     </div>
   );
 };
